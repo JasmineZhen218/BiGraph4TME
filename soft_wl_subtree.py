@@ -32,7 +32,7 @@ class Soft_WL_Subtree():
         x: numpy array, shape = [n_samples, n_features]
             node label/attribute matrix after graph convolution
         """
-        np.diagonal(adj, 1)  # set the diagonal of the adjacency matrix to 1
+        np.fill_diagonal(adj, 1)  # set the diagonal of the adjacency matrix to 1
         for i in range(self.n_iter):  # iterate through the number of iterations
             x = np.dot(adj, x)
         return x
