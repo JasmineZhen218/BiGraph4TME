@@ -85,12 +85,24 @@ class Cell_Graph:
         Merge cell graphs of the same patient.
         parameters
         ----------
-        cell_graphs : list of tuples
-            Each tuple is a cell graph, with the first element being the patient id, the second element being the adjacency matrix, and the third element being the cell type id array
+        cell_graphs : list of tuples (patient_id, adj, x)
+            cell graphs of the same patient
+            patient_id : str
+                The patient id.
+            adj : numpy array (n_nodes, n_nodes)
+                The adjacency matrix of the cell graph.
+            x : numpy array (n_nodes,)
+                The cell type id array.
         Returns
         -------
-        cell_graph : tuple
-            The merged cell graph, with the first element being the patient id, the second element being the concatenated adjacency matrix, and the third element being the concatenated cell type id array
+        cell_graph : tuple (patient_id, adj, x)
+            The merged cell graph
+            patient_id : str
+                The patient id.
+            adj : numpy array (n_nodes, n_nodes)
+                The adjacency matrix of the cell graph.
+            x : numpy array (n_nodes,)
+                The cell type id array.
         """
         patient_id = cell_graphs[0][0]
         adjs = [cell_graph[1] for cell_graph in cell_graphs]
@@ -108,7 +120,7 @@ class Cell_Graph:
             The input data, with columns specify patient id, image id, cell type id, x coordinates, y coordinates.
         Returns
         -------
-        Cell_graphs : list of tuples
+        Cell_graphs : list of tuples (patient_id, adj, x)
             Each tuple is a cell graph, with the first element being the patient id, the second element being the adjacency matrix, and the third element being the cell type id array
         """
         Cell_graphs = []
