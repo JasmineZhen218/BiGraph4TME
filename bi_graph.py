@@ -6,7 +6,8 @@ from explainer import Explainer
 
 
 class BiGraph:
-    def __init__(self, n_iter=0, k_subtree_clustering=100, k_patient_clustering=30):
+    def __init__(self, a = 0.01, n_iter=0, k_subtree_clustering=100, k_patient_clustering=30):
+        self.a = a  # parameter for edge weight calculation in cell graph  $w_{ij} = \exp(-a \cdot d_{ij}^2)$
         self.n_iter = n_iter  # number of iterations
         self.k_subtree_clustering = (
             k_subtree_clustering  # decides the coarseness of subtree clustering
@@ -73,9 +74,9 @@ class BiGraph:
                 len(singleCell_data) / len(singleCell_data["patientID"].unique()),
             )
         )
-        cell_graph_ = Cell_Graph()
+        cell_graph_ = Cell_Graph(a = self.a)
         Cell_graphs = cell_graph_.generate(singleCell_data)
-        soft_wl_subtree_ = Soft_WL_Subtree()
+        soft_wl_subtree_ = Soft_WL_Subtree(n_iter=self.n_iter, k=self.k_subtree_clustering)
         Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs)
         population_graph_ = Population_Graph()
         Population_graph = population_graph_.generate(Similarity_matrix)
