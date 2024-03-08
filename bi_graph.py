@@ -88,13 +88,18 @@ class BiGraph:
                 len(singleCell_data) / len(singleCell_data["patientID"].unique()),
             )
         )
+        print("Start generating cell graphs.")
         cell_graph_ = Cell_Graph(a=self.a) # initialize Cell_Graph class with parameter a
         Cell_graphs = cell_graph_.generate(singleCell_data) # generate cell graphs
+        print("Cell graphs generated.")
         Patient_ids = [cell_graph[0] for cell_graph in Cell_graphs] # get patient ids
+        print("Start measuring similarity between cell graphs using Soft-WL-Subtree-kernel")
         soft_wl_subtree_ = Soft_WL_Subtree(
             n_iter=self.n_iter, k=self.k_subtree_clustering
         ) # initialize Soft_WL_Subtree class with parameters n_iter and k
         Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs) # calculate similarity matrix using Soft_WL_Subtree
+        print("Similarity matrix calculated.")
+        print("Start generating population graph.")
         population_graph_ = Population_Graph(
             k=self.k_patient_clustering,
             resolution=self.resolution,
@@ -103,6 +108,8 @@ class BiGraph:
         ) # initialize Population_Graph class with parameters k, resolution, size_smallest_cluster, and seed
         Population_graph = population_graph_.generate(Similarity_matrix, Patient_ids) # generate population graph
         Patient_subgroups = population_graph_.community_detection(Population_graph) # detect patient subgroups
+        print("Population graph generated.")
+        print("Start finding characteristic patterns for each patient subgroup.")
         explainer_ = Explainer(threshold_hodges_lehmann = self.threshold_hodges_lehmann) # initialize Explainer class
         Characteristic_patterns = explainer_.find_characteristic_patterns(Patient_ids, Patient_subgroups, soft_wl_subtree_.Histograms)
         self.soft_wl_subtree_ = soft_wl_subtree_
