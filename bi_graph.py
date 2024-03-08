@@ -76,14 +76,14 @@ class BiGraph:
         )
         cell_graph_ = Cell_Graph(a = self.a)
         Cell_graphs = cell_graph_.generate(singleCell_data)
+        Patient_ids = [cell_graph[0] for cell_graph in Cell_graphs]
         soft_wl_subtree_ = Soft_WL_Subtree(n_iter=self.n_iter, k=self.k_subtree_clustering)
         Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs)
         population_graph_ = Population_Graph()
-        Population_graph = population_graph_.generate(Similarity_matrix)
+        Population_graph = population_graph_.generate(Similarity_matrix, Patient_ids)
         Patient_subgroups = population_graph_.community_detection(Population_graph)
         explainer_ = Explainer()
         Characteristic_patterns = explainer_.fit_transform()
-
         self.soft_wl_subtree_ = soft_wl_subtree_
         self.population_graph_ = population_graph_
         return Population_graph, Patient_subgroups, Characteristic_patterns
