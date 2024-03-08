@@ -111,27 +111,32 @@ class Soft_WL_Subtree():
         Parameters
         ----------
         X : list
-            Each element is a tuple: (adj, x)
-            adj is the adjacency matrix (N x N) while x is the node label/attribute matrix (N x d).
-                N: number of nodes in a graph
-                d: dimension of node features (e.g., one-hot encoding of cell type)
+            Each element is a tuple: (paitnet_id, adj, x)
+            patient_id: str
+            adj: numpy array, shape = [n_nodes, n_nodes]
+                adjacency matrix
+            x: numpy array, shape = [n_nodes, n_features]
+                node label/attribute matrix
         Returns
         -------
         X_prime: list
-            Each element is a tuple: (adj, x)
-            adj is the adjacency matrix (N x N) while x  is the resultant pattern id (N x 1).
-                N: number of nodes in a graph
+            Each element is a tuple: (patient_id, adj, x)
+            patient_id: str
+            adj: numpy array, shape = [n_nodes, n_nodes]
+                adjacency matrix
+            x: numpy array, shape = [n_nodes, n_features]
+                node label/attribute matrix with pattern ids
         self.Signatures: numpy array, shape = [n_patterns, n_features]
         """
         print(
             "Discovering TME patterns from {} graphs, median number of nodes is {}, node feature dimension is {}".format(
-                len(X), np.median([x[0].shape[0] for x in X]), X[0][1].shape[1]
+                len(X), np.median([x[1].shape[0] for x in X]), X[0][2].shape[1]
             )
         )
         Subtree_features = []  # list of graph convolution results
         N_nodes = []  # list of number of nodes in each graph
         print("\t 1) Graph Convolution")
-        for i, (adj, x) in enumerate(X):  # iterate through the graphs
+        for i, (patient_id, adj, x) in enumerate(X):  # iterate through the graphs
             subtree_feature = self.graph_convolution(
                 adj, x
             )  # subtree_feature for each graph
@@ -153,14 +158,10 @@ class Soft_WL_Subtree():
         for i, n in enumerate(N_nodes):  # iterate through the graphs
             end = start + n  # end index of the pattern ids
             X_prime.append(
-                (X[i][0], Pattern_ids[start:end])
+                (X[i][0], X[i][1], Pattern_ids[start:end])
             )  # append the graph with pattern ids
             start = end  # update the start index
-        self.Signatures = Signatures  # store the signatures
-        self.num_patterns = Signatures.shape[0]  # store the number of patterns
-        self.X = X  # store the input graphs
-        self.X_prime = X_prime  # store the graphs with pattern ids
-        return X_prime
+        return X_prime, Signatures
 
     def estimate_patterns(self, X):
         """Given a set of cellular graphs --> generate subtrees --> estimate the pattern belongingness of each subtree
@@ -209,21 +210,21 @@ class Soft_WL_Subtree():
         Given a set of cellular graphs, generate the TME patterns and compute the signature of each pattern (fit), and then calculate the kernel matrix (transform).
         Parameters
         ----------
-        X : list of tuples, with each element being a tuple: (adj, x)
-            Each element must be an iterable with at two features.
-            The first is the adjacency matrix (N x N) while the second is
-            node label/attribute matrix (N x d).
-                N: number of nodes
-                d: dimension of node features (e.g., one-hot encoding of cell type)
+        X : list of tuples, with each element being a tuple: (patient_id, adj, x)
+            patient_id: str
+            adj: numpy array, shape = [n_nodes, n_nodes]
+                adjacency matrix
+            x: numpy array, shape = [n_nodes, n_features]
+                node label/attribute matrix
+
         Returns
         -------
         K : numpy array, shape = [len(X), len(X)]
             corresponding to the kernel matrix, a calculation between
             all pairs of graphs between target an features
         """
-        X_prime = self.discover_patterns(X)  # discover the TME patterns
+        X_prime, Signatures = self.discover_patterns(X)  # discover the TME patterns
         Histograms = self.compute_histograms(X_prime)  # compute the histograms
-        self.Histograms = Histograms  # store the histograms
         # Initialize the kernel matrix
         n = len(X)
         K = np.zeros((n, n))
@@ -237,6 +238,8 @@ class Soft_WL_Subtree():
             K = K / np.sqrt(
                 np.outer(np.diag(K), np.diag(K))
             )  # normalize the kernel matrix
+        self.Signatures = Signatures  # store the signatures
+        self.Histograms = Histograms  # store the histograms
         return K
 
     def transform(self, X):
