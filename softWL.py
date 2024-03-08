@@ -2,6 +2,7 @@
 # -- a relaxation of the conventional Weisfeiler-Lehman subtree kernel
 import numpy as np
 import phenograph
+from sklearn.neighbors import NearestNeighbors
 
 class SoftWL():
     """Calculate the Soft WL subtree kernel"""
@@ -11,16 +12,89 @@ class SoftWL():
         self.k = k # number of neighbors for phenograph clustering
         self.normalize = normalize # whether to normalize the kernel matrix
     def graph_convolution(self, adj, x):
-        pass
+        """
+        graph convolution
+        Parameters
+        ----------
+        adj: numpy array, shape = [n_samples, n_samples]
+            adjacency matrix
+        x: numpy array, shape = [n_samples, n_features]
+            node label/attribute matrix
+        Returns
+        -------
+        x: numpy array, shape = [n_samples, n_features]
+            node label/attribute matrix after graph convolution
+        """
+        np.diagonal(adj, 1) # set the diagonal of the adjacency matrix to 1
+        for i in range(self.n_iter): # iterate through the number of iterations
+            x = np.dot(adj, x)
+        return x
     def cluster_subtrees(self, X):
+        """
+        Cluster the subtrees
+        Parameters
+        ----------
+        X: numpy array, shape = [n_samples, n_features]
+        Returns
+        -------
+        cluster_identities: numpy array, shape = [n_samples]
+        """
         cluster_identities, _, _ = phenograph.cluster(X, n_jobs=self.n_job, k=self.k)
         return cluster_identities
     def compute_cluster_centroids(X, Cluster_identities):
-        pass
+        """
+        Compute the cluster centroids
+        Parameters
+        ----------
+        X: numpy array, shape = [n_samples, n_features]
+        Cluster_identities: numpy array, shape = [n_samples]
+        Returns
+        -------
+        Signatures: numpy array, shape = [n_clusters, n_features]
+        """
+        n_clusters = len(np.unique(Cluster_identities))
+        Signatures = np.zeros((n_clusters, X.shape[1]))
+        for i in range(n_clusters):
+            Signatures[i] = np.mean(X[Cluster_identities == i], axis=0)
+        return Signatures
     def compute_histogram(self, X):
-        pass
+        """
+        Compute the histogram of the patterns
+        Parameters
+        ----------
+        X: list
+            Each element is a tuple: (adj, x)
+            adj is the adjacency matrix (N x N) while x is the pattern id matrix (N).
+                N: number of nodes in a graph
+        Returns
+        -------
+        Histograms: list
+            Each element is a numpy array, shape = [self.n_patterns]
+        """
+        Histograms = []
+        for i, (adj, x) in enumerate(X):
+            histogram = np.zeros(self.num_patterns)
+            for j in range(self.num_patterns):
+                histogram[j] = np.sum(x == j)
+            Histograms.append(histogram)
+        return Histograms
+    
     def closest_cluster_mapping(self, X, Signatures):
-        pass
+        """
+        Given a set of subtrees, find the closest cluster
+        Parameters
+        ----------
+        X: numpy array, shape = [n_samples, n_features]
+        Signatures: numpy array, shape = [n_clusters, n_features]
+        Returns
+        -------
+        Pattern_ids_hat: numpy array, shape = [n_samples]
+        """
+        neigh = NearestNeighbors(n_neighbors=1, radius=1)
+        neigh.fit(Signatures)
+        distances, indices = neigh.kneighbors(X)
+        Pattern_ids_hat = indices.flatten()
+        return Pattern_ids_hat
 
     def discover_patterns(self, X):
         """ Given a set of cellular graphs --> generate subtrees --> Discover TME patterns by clustering subtrees
