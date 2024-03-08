@@ -14,6 +14,7 @@ class BiGraph:
         k_patient_clustering=30,
         resolution=1.0,
         size_smallest_cluster=10,
+        threshold_hodges_lehmann=0.5,
         seed=1,
     ):
         self.a = a  # parameter for edge weight calculation in cell graph  $w_{ij} = \exp(-a \cdot d_{ij}^2)$
@@ -26,6 +27,7 @@ class BiGraph:
         )
         self.resolution = resolution  # resolution parameter for community detection
         self.size_smallest_cluster = size_smallest_cluster  # the size of the smallest patient subgroups (a subgroup smaller than that will be considered isolated patients)
+        self.threshold_hodges_lehmann = threshold_hodges_lehmann
         self.seed = seed  # random seed in population graph community detection
 
     def fit_transform(
@@ -86,23 +88,23 @@ class BiGraph:
                 len(singleCell_data) / len(singleCell_data["patientID"].unique()),
             )
         )
-        cell_graph_ = Cell_Graph(a=self.a)
-        Cell_graphs = cell_graph_.generate(singleCell_data)
-        Patient_ids = [cell_graph[0] for cell_graph in Cell_graphs]
+        cell_graph_ = Cell_Graph(a=self.a) # initialize Cell_Graph class with parameter a
+        Cell_graphs = cell_graph_.generate(singleCell_data) # generate cell graphs
+        Patient_ids = [cell_graph[0] for cell_graph in Cell_graphs] # get patient ids
         soft_wl_subtree_ = Soft_WL_Subtree(
             n_iter=self.n_iter, k=self.k_subtree_clustering
-        )
-        Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs)
+        ) # initialize Soft_WL_Subtree class with parameters n_iter and k
+        Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs) # calculate similarity matrix using Soft_WL_Subtree
         population_graph_ = Population_Graph(
             k=self.k_patient_clustering,
             resolution=self.resolution,
             size_smallest_cluster=self.size_smallest_cluster,
             seed=self.seed,
-        )
-        Population_graph = population_graph_.generate(Similarity_matrix, Patient_ids)
-        Patient_subgroups = population_graph_.community_detection(Population_graph)
-        explainer_ = Explainer()
-        Characteristic_patterns = explainer_.fit_transform()
+        ) # initialize Population_Graph class with parameters k, resolution, size_smallest_cluster, and seed
+        Population_graph = population_graph_.generate(Similarity_matrix, Patient_ids) # generate population graph
+        Patient_subgroups = population_graph_.community_detection(Population_graph) # detect patient subgroups
+        explainer_ = Explainer(threshold_hodges_lehmann = self.threshold_hodges_lehmann) # initialize Explainer class
+        Characteristic_patterns = explainer_.find_characteristic_patterns(Patient_ids, Patient_subgroups, soft_wl_subtree_.Histograms)
         self.soft_wl_subtree_ = soft_wl_subtree_
         self.population_graph_ = population_graph_
         return Population_graph, Patient_subgroups, Characteristic_patterns
