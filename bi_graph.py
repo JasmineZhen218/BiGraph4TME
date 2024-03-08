@@ -6,7 +6,16 @@ from explainer import Explainer
 
 
 class BiGraph:
-    def __init__(self, a = 0.01, n_iter=0, k_subtree_clustering=100, k_patient_clustering=30):
+    def __init__(
+        self,
+        a=0.01,
+        n_iter=0,
+        k_subtree_clustering=100,
+        k_patient_clustering=30,
+        resolution=1.0,
+        size_smallest_cluster=10,
+        seed=1,
+    ):
         self.a = a  # parameter for edge weight calculation in cell graph  $w_{ij} = \exp(-a \cdot d_{ij}^2)$
         self.n_iter = n_iter  # number of iterations
         self.k_subtree_clustering = (
@@ -15,6 +24,9 @@ class BiGraph:
         self.k_patient_clustering = (
             k_patient_clustering  # decides the coarseness of patient clustering
         )
+        self.resolution = resolution  # resolution parameter for community detection
+        self.size_smallest_cluster = size_smallest_cluster  # the size of the smallest patient subgroups (a subgroup smaller than that will be considered isolated patients)
+        self.seed = seed  # random seed in population graph community detection
 
     def fit_transform(
         self,
@@ -74,12 +86,19 @@ class BiGraph:
                 len(singleCell_data) / len(singleCell_data["patientID"].unique()),
             )
         )
-        cell_graph_ = Cell_Graph(a = self.a)
+        cell_graph_ = Cell_Graph(a=self.a)
         Cell_graphs = cell_graph_.generate(singleCell_data)
         Patient_ids = [cell_graph[0] for cell_graph in Cell_graphs]
-        soft_wl_subtree_ = Soft_WL_Subtree(n_iter=self.n_iter, k=self.k_subtree_clustering)
+        soft_wl_subtree_ = Soft_WL_Subtree(
+            n_iter=self.n_iter, k=self.k_subtree_clustering
+        )
         Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs)
-        population_graph_ = Population_Graph()
+        population_graph_ = Population_Graph(
+            k=self.k_patient_clustering,
+            resolution=self.resolution,
+            size_smallest_cluster=self.size_smallest_cluster,
+            seed=self.seed,
+        )
         Population_graph = population_graph_.generate(Similarity_matrix, Patient_ids)
         Patient_subgroups = population_graph_.community_detection(Population_graph)
         explainer_ = Explainer()

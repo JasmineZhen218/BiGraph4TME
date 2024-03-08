@@ -17,6 +17,9 @@ class Soft_WL_Subtree():
                 self.n_iter, self.n_job, self.k, self.normalize
             )
         )
+        self.Signatures = None  # initialize the signatures of the TME patterns
+        self.Histograms = None # initialize the histograms of the graphs
+        self.num_patterns = None # initialize the number of patterns
 
     def graph_convolution(self, adj, x):
         """
@@ -240,6 +243,7 @@ class Soft_WL_Subtree():
             )  # normalize the kernel matrix
         self.Signatures = Signatures  # store the signatures
         self.Histograms = Histograms  # store the histograms
+        self.num_patterns = len(Signatures) # store the number of patterns
         return K
 
     def transform(self, X):
