@@ -11,6 +11,7 @@ class SoftWL():
         self.n_job = n_jobs # number of jobs for parallel computation
         self.k = k # number of neighbors for phenograph clustering
         self.normalize = normalize # whether to normalize the kernel matrix
+        print('Initialize SoftWL: n_iter={}, n_jobs={}, k={}, normalize={}'.format(self.n_iter, self.n_job, self.k, self.normalize))
     def graph_convolution(self, adj, x):
         """
         graph convolution
@@ -113,15 +114,19 @@ class SoftWL():
                 N: number of nodes in a graph
         self.Signatures: numpy array, shape = [n_patterns, n_features]
         """
+        print('Discovering TME patterns from {} graphs, median number of nodes is {}, node feature dimension is {}'.format(len(X), np.median([x[0].shape[0] for x in X]), X[0][1].shape[1]))
         Subtree_features = [] # list of graph convolution results
         N_nodes = [] # list of number of nodes in each graph
+        print("\t 1) Graph Convolution")
         for i, (adj, x) in enumerate(X): # iterate through the graphs
             subtree_feature = self.graph_convolution(adj, x) # subtree_feature for each graph
             Subtree_features.append(subtree_feature) # append the subtree feature
             N_nodes.append(subtree_feature.shape[0]) # append the number of nodes
         Subtree_features = np.concatenate(Subtree_features, axis=0) # concatenate all subtree features
+        print("\t 2) Clustering Subtrees")
         Pattern_ids = self.cluster_subtrees(Subtree_features) # cluster the subtree features
         Signatures = self.compute_cluster_centroids(Subtree_features, Pattern_ids)  # compute the cluster centroids --> signature of each TME pattern
+        print("\t 3) Assigning Pattern Ids to Subtrees")
         X_prime = [] # list of graphs with pattern ids
         start = 0 # start index of the pattern ids
         for i, n in enumerate(N_nodes): # iterate through the graphs
@@ -150,22 +155,25 @@ class SoftWL():
             adj is the adjacency matrix (N x N) while x  is the resultant pattern id (N x 1).
                 N: number of nodes in a graph
         """
+        print('Estimating TME patterns from {} graphs, median number of nodes is {}, node feature dimension is {}'.format(len(X), np.median([x[0].shape[0] for x in X]), X[0][1].shape[1]))
         Subtree_features = []
         N_nodes = []
+        print("\t 1) Graph Convolution")
         for i, (adj, x) in enumerate(X):
             subtree_feature = self.graph_convolution(adj, x)
             Subtree_features.append(subtree_feature)
             N_nodes.append(subtree_feature.shape[0])
         Subtree_features = np.concatenate(Subtree_features, axis=0)
+        print("\t 2) Estimating Pattern Ids")
         Pattern_ids = self.closest_cluster_mapping(Subtree_features, self.Signatures)
         X_prime = []
+        print("\t 3) Assigning Pattern Ids to Subtrees")
         start = 0 # start index of the pattern ids
         for i, n in enumerate(N_nodes): # iterate through the graphs
             end = start + n # end index of the pattern ids
             X_prime.append((X[i][0], Pattern_ids[start:end])) # append the graph with pattern ids
             start = end # update the start index
         return X_prime
-
 
     def fit_transform(self, X):
         """
