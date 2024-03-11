@@ -64,7 +64,7 @@ class BiGraph:
         Characteristic_patterns : dict
             The characteristic patterns for each patient subgroup. The key is the subgroup id, and the value is a list of TME pattern id.
         """
-        singleCell_data = pd.rename(
+        singleCell_data = singleCell_data.rename(
             columns={
                 patientID_colname: "patientID",
                 imageID_colname: "imageID",
