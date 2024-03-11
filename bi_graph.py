@@ -112,8 +112,7 @@ class BiGraph:
         print("Start finding characteristic patterns for each patient subgroup.")
         explainer_ = Explainer(threshold_hodges_lehmann = self.threshold_hodges_lehmann) # initialize Explainer class
         Characteristic_patterns = explainer_.find_characteristic_patterns(Patient_ids, Patient_subgroups, soft_wl_subtree_.Histograms)
-        self.soft_wl_subtree_ = soft_wl_subtree_
-        self.population_graph_ = population_graph_
+        self.Patient_subgroups = Patient_subgroups
         return Population_graph, Patient_subgroups, Characteristic_patterns
 
     def transform(
@@ -177,6 +176,6 @@ class BiGraph:
         Cell_graphs = cell_graph_.generate(singleCell_data)
         Similarity_matrix = self.soft_wl_subtree.transform(Cell_graphs)
         Patient_subgroups_hat = self.population_graph_.estimate_community(
-            Similarity_matrix
+            Similarity_matrix, self.Patient_subgroups
         )
         return Patient_subgroups_hat

@@ -74,4 +74,7 @@ class Population_Graph:
         for i, c in enumerate(Communities):
             Patient_subgroups[i] = [G_population.nodes[n]["patientID"] for n in c] # fill in the patient subgroups
         return Patient_subgroups
+    
+    def estimate_community(self,  Similarity_matrix, Patient_subgroups_reference):
+        
 
