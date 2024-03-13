@@ -5,7 +5,7 @@ import phenograph
 from sklearn.neighbors import NearestNeighbors
 
 
-class Soft_WL_Subtree():
+class Soft_WL_Subtree(object):
     """Calculate the Soft WL subtree kernel"""
     def __init__(self, n_iter=0, n_jobs=-1, k=100, normalize=True):
         self.n_iter = n_iter  # number of iterations of graph convolution
@@ -20,6 +20,7 @@ class Soft_WL_Subtree():
         self.Signatures = None  # initialize the signatures of the TME patterns
         self.Histograms = None # initialize the histograms of the graphs
         self.num_patterns = None # initialize the number of patterns
+        self.X_prime = None # initialize the graphs with pattern ids
 
     def graph_convolution(self, adj, x):
         """
@@ -207,6 +208,7 @@ class Soft_WL_Subtree():
                 (X[i][0], Pattern_ids[start:end])
             )  # append the graph with pattern ids
             start = end  # update the start index
+        
         return X_prime
 
     def fit_transform(self, X):
@@ -245,6 +247,7 @@ class Soft_WL_Subtree():
         self.Signatures = Signatures  # store the signatures
         self.Histograms = Histograms  # store the histograms
         self.num_patterns = len(Signatures) # store the number of patterns
+        self.X_prime = X_prime
         return K
 
     def transform(self, X):
