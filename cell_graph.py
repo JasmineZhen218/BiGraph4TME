@@ -66,6 +66,24 @@ class Cell_Graph:
             out[offset : offset + array.shape[0], offset : offset + size] = array
             offset += size
         return out
+    def one_hot_encode(self, x, dimension):
+        """
+        One-hot encode the input array.
+        parameters
+        ----------
+        x : numpy array (n,)
+            The input array.
+        dimension : int
+            The dimension of the one-hot encoded array.
+        Returns
+        -------
+        one_hot : numpy array (n, dimension)
+            The one-hot encoded array.
+        """
+        n = len(x)
+        one_hot = np.zeros((n, dimension))
+        one_hot[np.arange(n), x] = 1
+        return one_hot
 
     def merge_cell_graphs(self, cell_graphs):
         """
@@ -112,6 +130,7 @@ class Cell_Graph:
         """
         Cell_graphs = []
         Patient_ids = singleCell_data["patientID"].unique()
+        num_unique_cell_types = len(singleCell_data["celltypeID"].unique())
         for patient_id in Patient_ids:
             patient_data = singleCell_data[singleCell_data["patientID"] == patient_id]
             if patient_data["imageID"].nunique() > 1:
@@ -125,6 +144,7 @@ class Cell_Graph:
                     pos = image_data[["coorX", "coorY"]].values
                     adj = self.Pos2Adj(pos)
                     x = image_data["celltypeID"].values
+                    x = self.one_hot_encode(x, dimension = num_unique_cell_types)
                     cell_graphs.append((patient_id, adj, x))
                 cell_graph = self.merge_cell_graphs(cell_graphs)
 

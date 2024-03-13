@@ -41,6 +41,7 @@ class Soft_WL_Subtree():
         return x
 
     def cluster_subtrees(self, X):
+        # call "export OMP_NUM_THREADS=1" before running to avoid "Too many memory regions" error with Dask
         """
         Cluster the subtrees
         Parameters
