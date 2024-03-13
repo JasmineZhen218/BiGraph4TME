@@ -74,7 +74,7 @@ class Soft_WL_Subtree(object):
             Signatures[i] = np.mean(X[Cluster_identities == i], axis=0)
         return Signatures
 
-    def compute_histogram(self, X):
+    def compute_histograms(self, X):
         """
         Compute the histogram of the patterns
         Parameters
@@ -89,7 +89,7 @@ class Soft_WL_Subtree(object):
             Each element is a numpy array, shape = [self.n_patterns]
         """
         Histograms = []
-        for i, (adj, x) in enumerate(X):
+        for i, (patient_id, adj, x) in enumerate(X):
             histogram = np.zeros(self.num_patterns)
             for j in range(self.num_patterns):
                 histogram[j] = np.sum(x == j)
@@ -232,7 +232,12 @@ class Soft_WL_Subtree(object):
             all pairs of graphs between target an features
         """
         X_prime, Signatures = self.discover_patterns(X)  # discover the TME patterns
+        self.X = X  # store the input graphs
+        self.X_prime = X_prime  # store the graphs with pattern ids
+        self.Signatures = Signatures  # store the signatures
+        self.num_patterns = len(Signatures) # store the number of patterns
         Histograms = self.compute_histograms(X_prime)  # compute the histograms
+        self.Histograms = Histograms  # store the histograms
         # Initialize the kernel matrix
         n = len(X)
         K = np.zeros((n, n))
@@ -246,11 +251,6 @@ class Soft_WL_Subtree(object):
             K = K / np.sqrt(
                 np.outer(np.diag(K), np.diag(K))
             )  # normalize the kernel matrix
-        self.Signatures = Signatures  # store the signatures
-        self.Histograms = Histograms  # store the histograms
-        self.num_patterns = len(Signatures) # store the number of patterns
-        self.X = X  # store the input graphs
-        self.X_prime = X_prime  # store the graphs with pattern ids
         self.Similarity_matrix = K # store the kernel matrix
         return K # return the kernel matrix
 

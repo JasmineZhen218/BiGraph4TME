@@ -127,11 +127,11 @@ print(
 # for debug
 Cell_graphs = Cell_graphs[:10]
 soft_wl_subtree_ = Soft_WL_Subtree(n_iter=2, k=100, n_jobs=1)
-Cell_graphs_prime, Signatures = soft_wl_subtree_.fit_transform(Cell_graphs)
-print("The soft wl subtree kernel is fitted.")
+Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs)
+print("The similarity matrix has a shape of {}.",format(Similarity_matrix.shape))
 Signatures = soft_wl_subtree_.Signatures
-Cell_graphs_prime = soft_wl_subtree_.X_prime
 print("There are {} discovered patterns".format(len(Signatures)))
+Cell_graphs_prime = soft_wl_subtree_.X_prime
 cell_graph_prime = Cell_graphs_prime[0]
 print(
     "The first Cell_graphs_prime element (and all others) is a tuple: (patient_id, adj, patterns)"
