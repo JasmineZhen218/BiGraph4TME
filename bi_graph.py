@@ -3,7 +3,8 @@ from soft_wl_subtree import Soft_WL_Subtree
 from cell_graph import Cell_Graph
 from population_graph import Population_Graph
 from explainer import Explainer
-
+import os
+import pickle
 
 class BiGraph(object):
     def __init__(
@@ -93,11 +94,18 @@ class BiGraph(object):
         Cell_graphs = cell_graph_.generate(singleCell_data) # generate cell graphs
         print("Cell graphs generated.")
         Patient_ids = [cell_graph[0] for cell_graph in Cell_graphs] # get patient ids
-        print("Start measuring similarity between cell graphs using Soft-WL-Subtree-kernel")
-        soft_wl_subtree_ = Soft_WL_Subtree(
-            n_iter=self.n_iter, k=self.k_subtree_clustering
-        ) # initialize Soft_WL_Subtree class with parameters n_iter and k
-        Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs) # calculate similarity matrix using Soft_WL_Subtree
+        print("Start measuring similarity between cell graphs using Soft-WL-Subtree-kernel (this is the most time-consuming step).")
+        if os.path.exists("fitted_soft_wl_subtree.pkl"):
+            print("Fortunately, the soft wl subtree kernel has been fitted before. We will load it directly.")
+            print("If you want to re-calculate the similarity matrix, please delete the file 'fitted_soft_wl_subtree.pkl'.")
+            with open("fitted_soft_wl_subtree.pkl", "rb") as f:
+                soft_wl_subtree_ = pickle.load(f)
+            Similarity_matrix = soft_wl_subtree_.Similarity_matrix
+        else:
+            soft_wl_subtree_ = Soft_WL_Subtree(
+                n_iter=self.n_iter, k=self.k_subtree_clustering
+            ) # initialize Soft_WL_Subtree class with parameters n_iter and k
+            Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs) # calculate similarity matrix using Soft_WL_Subtree
         print("Similarity matrix calculated.")
         print("Start generating population graph.")
         population_graph_ = Population_Graph(
