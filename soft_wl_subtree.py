@@ -149,7 +149,7 @@ class Soft_WL_Subtree():
         Subtree_features = np.concatenate(
             Subtree_features, axis=0
         )  # concatenate all subtree features
-        print("\t 2) Clustering Subtrees")
+        print("\t 2) Clustering {} Subtrees".format(Subtree_features.shape[0]))
         Pattern_ids = self.cluster_subtrees(
             Subtree_features
         )  # cluster the subtree features
