@@ -5,7 +5,7 @@ from population_graph import Population_Graph
 from explainer import Explainer
 
 
-class BiGraph:
+class BiGraph(object):
     def __init__(
         self,
         a=0.01,
