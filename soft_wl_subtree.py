@@ -20,7 +20,9 @@ class Soft_WL_Subtree(object):
         self.Signatures = None  # initialize the signatures of the TME patterns
         self.Histograms = None # initialize the histograms of the graphs
         self.num_patterns = None # initialize the number of patterns
+        self.X = None # initialize the input graphs
         self.X_prime = None # initialize the graphs with pattern ids
+        self.Similarity_matrix = None # initialize the kernel matrix
 
     def graph_convolution(self, adj, x):
         """
@@ -247,8 +249,10 @@ class Soft_WL_Subtree(object):
         self.Signatures = Signatures  # store the signatures
         self.Histograms = Histograms  # store the histograms
         self.num_patterns = len(Signatures) # store the number of patterns
-        self.X_prime = X_prime
-        return K
+        self.X = X  # store the input graphs
+        self.X_prime = X_prime  # store the graphs with pattern ids
+        self.Similarity_matrix = K # store the kernel matrix
+        return K # return the kernel matrix
 
     def transform(self, X):
         """Calculate the kernel matrix, between the fitted graphs and the (unseen) input graphs
