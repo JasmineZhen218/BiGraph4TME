@@ -15,6 +15,34 @@ set export OMP_NUM_THREADS=1 to avoid memory error
 """
 os.system("export OMP_NUM_THREADS=1")
 
+argparser = argparse.ArgumentParser()
+argparser.add_argument(
+    "--n_iter",
+    type=int,
+    default=2,
+    help="Number of iterations for graph convolution",
+)
+argparser.add_argument(
+    "--k_subtree_clustering",
+    type=int,
+    default=100,
+    help="decides the coarseness of subtree clustering",
+)
+argparser.add_argument(
+    "--a",
+    type=float,
+    default=0.01,
+    help="parameter for edge weight calculation in cell graph",
+)
+argparser.add_argument(
+    "--mode",
+    type=str,
+    default="discovery",
+    help="mode of the experiment, discovery or debug, default is discovery. In debug mode, only a subset of 10 cellular graphs is used",
+)
+args = argparser.parse_args()
+
+
 # read single cell data and clinical data
 cells = pd.read_csv(os.path.join(PROJECT_ROOT, "Datasets/Danenberg_et_al/cells.csv"))
 clinical = pd.read_csv(
@@ -99,7 +127,7 @@ cells = cells.rename(
     }
 )
 
-cell_graph_ = Cell_Graph(a=0.01)
+cell_graph_ = Cell_Graph(a=args.a)
 Cell_graphs = cell_graph_.generate(cells)
 print("There are {} patients/cell graphs".format(len(Cell_graphs)))
 
@@ -125,8 +153,10 @@ print(
     )
 )
 # for debug
-Cell_graphs = Cell_graphs[:10]
-soft_wl_subtree_ = Soft_WL_Subtree(n_iter=2, k=100, n_jobs=1)
+if args.mode == "debug":
+    print("In debug mode, only a subset of 10 cellular graphs is used")
+    Cell_graphs = Cell_graphs[:10]
+soft_wl_subtree_ = Soft_WL_Subtree(n_iter=args.n_iter, k=args.k_subtree_clustering, n_jobs=1)
 Similarity_matrix = soft_wl_subtree_.fit_transform(Cell_graphs)
 print("The similarity matrix has a shape of {}.",format(Similarity_matrix.shape))
 Signatures = soft_wl_subtree_.Signatures
@@ -156,6 +186,6 @@ print(
 # save the fitted soft_wl_subtree_ model
 import pickle
 
-with open("fitted_soft_wl_subtree.pkl", "wb") as f:
+with open(os.path.join(PROJECT_ROOT, "fitted_soft_wl_subtree.pkl"), "wb") as f:
     pickle.dump(soft_wl_subtree_, f)
 print("The fitted soft_wl_subtree_ model is saved as fitted_soft_wl_subtree.pkl")
