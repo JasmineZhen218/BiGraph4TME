@@ -2,7 +2,7 @@ from scipy.spatial.distance import pdist, squareform
 import numpy as np
 
 
-class Cell_Graph:
+class Cell_Graph(object):
     def __init__(self, a=0.01):
         self.a = a  # parameter for edge weight calculation
 
