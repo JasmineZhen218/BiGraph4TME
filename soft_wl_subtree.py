@@ -132,8 +132,8 @@ class Soft_WL_Subtree():
         self.Signatures: numpy array, shape = [n_patterns, n_features]
         """
         print(
-            "Discovering TME patterns from {} graphs, median number of nodes is {}, node feature dimension is {}".format(
-                len(X), np.median([x[1].shape[0] for x in X]), X[0][2].shape[1]
+            "Discovering TME patterns from {} graphs, median number of nodes is {}, node feature matrix dimension is {}".format(
+                len(X), np.median([x[1].shape[0] for x in X]), X[0][2].shape
             )
         )
         Subtree_features = []  # list of graph convolution results
