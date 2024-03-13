@@ -26,7 +26,7 @@ class Cell_Graph:
         )  # edge weight = exp(- a * distance^2)
         return adj
 
-    def block_digonal(self, arrays):
+    def block_diagonal(self, arrays):
         """
         Concatenate arrays along the diagonal.
         parameters
@@ -35,7 +35,7 @@ class Cell_Graph:
             The input arrays.
         Returns
         -------
-        block_digonal : numpy array
+        block_diagonal : numpy array
             The concatenated array.
         Example
             -------
@@ -59,26 +59,13 @@ class Cell_Graph:
             [ 0  0  0  0  0  0 13 14]
             [ 0  0  0  0  0  0 15 16]]
         """
-        return np.block(
-            [
-                [
-                    np.zeros(
-                        (
-                            array.shape[0],
-                            sum(a.shape[1] for a in arrays if array is not a),
-                        )
-                    ),
-                    array,
-                    np.zeros(
-                        (
-                            array.shape[0],
-                            sum(a.shape[1] for a in arrays if array is not a),
-                        )
-                    ),
-                ]
-                for array in arrays
-            ]
-        )
+        sizes = [array.shape[1] for array in arrays]
+        out = np.zeros((sum(sizes), sum(sizes)))
+        offset = 0
+        for array, size in zip(arrays, sizes):
+            out[offset : offset + array.shape[0], offset : offset + size] = array
+            offset += size
+        return out
 
     def merge_cell_graphs(self, cell_graphs):
         """
@@ -107,7 +94,7 @@ class Cell_Graph:
         patient_id = cell_graphs[0][0]
         adjs = [cell_graph[1] for cell_graph in cell_graphs]
         xs = [cell_graph[2] for cell_graph in cell_graphs]
-        adj = self.block_digonal(adjs)
+        adj = self.block_diagonal(adjs)
         x = np.concatenate(xs, axis=0)
         return (patient_id, adj, x)
 
