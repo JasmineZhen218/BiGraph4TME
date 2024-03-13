@@ -57,7 +57,7 @@ class Soft_WL_Subtree(object):
         cluster_identities, _, _ = phenograph.cluster(X, n_jobs=self.n_job, k=self.k)
         return cluster_identities
 
-    def compute_cluster_centroids(X, Cluster_identities):
+    def compute_cluster_centroids(self, X, Cluster_identities):
         """
         Compute the cluster centroids
         Parameters
