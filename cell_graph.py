@@ -152,6 +152,7 @@ class Cell_Graph:
                 pos = patient_data[["coorX", "coorY"]].values
                 adj = self.Pos2Adj(pos)
                 x = patient_data["celltypeID"].values
+                x = self.one_hot_encode(x, dimension = num_unique_cell_types)
                 cell_graph = (patient_id, adj, x)
             Cell_graphs.append(cell_graph)
         return Cell_graphs
