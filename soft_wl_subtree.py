@@ -165,7 +165,7 @@ class Soft_WL_Subtree(object):
         for i, n in enumerate(N_nodes):  # iterate through the graphs
             end = start + n  # end index of the pattern ids
             X_prime.append(
-                (X[i][0], X[i][1], Pattern_ids[start:end])
+                (X[i][0], X[i][1], Subtree_features[start:end, :], Pattern_ids[start:end])
             )  # append the graph with pattern ids
             start = end  # update the start index
         return X_prime, Signatures

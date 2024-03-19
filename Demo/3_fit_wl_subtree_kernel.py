@@ -108,7 +108,7 @@ print(
 )
 
 # Assign cell type Id based on meta description column
-cells["cellTypeID"] = cells["meta_description"].map(
+cells_discovery["cellTypeID"] = cells_discovery["meta_description"].map(
     get_node_id("Danenberg", "CellType")
 )
 # standardize column names
@@ -117,7 +117,7 @@ imageID_colname = "ImageNumber"
 celltypeID_colname = "cellTypeID"
 coorX_colname = "Location_Center_X"
 coorY_colname = "Location_Center_Y"
-cells = cells.rename(
+cells_discovery = cells_discovery.rename(
     columns={
         patientID_colname: "patientID",
         imageID_colname: "imageID",
@@ -128,7 +128,7 @@ cells = cells.rename(
 )
 
 cell_graph_ = Cell_Graph(a=args.a)
-Cell_graphs = cell_graph_.generate(cells)
+Cell_graphs = cell_graph_.generate(cells_discovery)
 print("There are {} patients/cell graphs".format(len(Cell_graphs)))
 
 
