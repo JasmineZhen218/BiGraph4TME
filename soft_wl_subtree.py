@@ -89,7 +89,7 @@ class Soft_WL_Subtree(object):
             Each element is a numpy array, shape = [self.n_patterns]
         """
         Histograms = []
-        for i, (patient_id, adj, x) in enumerate(X):
+        for i, (_, _, _, x) in enumerate(X):
             histogram = np.zeros(self.num_patterns)
             for j in range(self.num_patterns):
                 histogram[j] = np.sum(x == j)

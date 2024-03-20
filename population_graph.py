@@ -47,7 +47,7 @@ class Population_Graph:
         Population_graph : networkx graph
             The population graph.
         """
-        Similarity_matrix_ = Similarity_matrix  # make a copy
+        Similarity_matrix_ = Similarity_matrix.copy()  # make a copy
         np.fill_diagonal(Similarity_matrix_, 0)  # remove self-similarity
 
         for i in range(Similarity_matrix_.shape[0]):
@@ -58,14 +58,17 @@ class Population_Graph:
                 0  # remove edges that are not in the k nearest neighbors
             )
         adj_1 = np.maximum(
-                Similarity_matrix_, Similarity_matrix_.transpose()
-            )  # make it symmetric
+            Similarity_matrix_, Similarity_matrix_.transpose()
+        )  # make it symmetric
         adj_2 = np.zeros_like(adj_1)  # IoU matrix
         for i in range(Similarity_matrix_.shape[0]):
             for j in range(Similarity_matrix_.shape[0]):
                 neighbor_i = np.where(adj_1[i, :] > 0)[0]
                 neighbor_j = np.where(adj_1[j, :] > 0)[0]
-                IoU = len(set(neighbor_i).intersection(set(neighbor_j))) / len(
+                if len(set(neighbor_i).union(set(neighbor_j))) == 0:
+                    IoU = 0
+                else:
+                    IoU = len(set(neighbor_i).intersection(set(neighbor_j))) / len(
                         set(neighbor_i).union(set(neighbor_j))  # calculate the IoU
                     )
                 adj_2[i, j] = IoU  # fill in the IoU matrix
@@ -91,7 +94,7 @@ class Population_Graph:
         Patient_subgroups : list of dict
             The patient subgroups. Each dict contains the patient ids in the subgroup.
         """
-        Communities = nx.algorithms.community.louvain_communities(
+        Communities = nx.community.louvain_communities(
             G_population, weight="weight", resolution=self.resolution, seed=1
         )  # community detection using Louvain method
         Communities = [
@@ -103,7 +106,7 @@ class Population_Graph:
         Patient_subgroups = []
         for i, c in enumerate(Communities):
             Patient_subgroups.append(
-                {'patient_ids': [G_population.nodes[n]["patientID"] for n in c]}
+                {"patient_ids": [G_population.nodes[n]["patientID"] for n in c]}
             )
         return Patient_subgroups
 

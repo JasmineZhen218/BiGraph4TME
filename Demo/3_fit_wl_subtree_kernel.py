@@ -164,7 +164,7 @@ print("There are {} discovered patterns".format(len(Signatures)))
 Cell_graphs_prime = soft_wl_subtree_.X_prime
 cell_graph_prime = Cell_graphs_prime[0]
 print(
-    "The first Cell_graphs_prime element (and all others) is a tuple: (patient_id, adj, patterns)"
+    "The first Cell_graphs_prime element (and all others) is a tuple: (patient_id, adj, subtree feature, patterns)"
 )
 print("\tThe first element is the patient id: {}".format(cell_graph_prime[0]))
 print(
@@ -173,8 +173,13 @@ print(
     )
 )
 print(
-    "\tThe third element is the patterns, with the shape of {}".format(
+    "\tThe third element is the subtree feature, with the shape of {}".format(
         cell_graph_prime[2].shape
+    )
+)
+print(
+    "\tThe fourth element is the pattern id, with the shape of {}".format(
+        cell_graph_prime[3].shape
     )
 )
 print(

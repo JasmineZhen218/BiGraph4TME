@@ -66,14 +66,14 @@ class BiGraph(object):
         Characteristic_patterns : dict
             The characteristic patterns for each patient subgroup. The key is the subgroup id, and the value is a list of TME pattern id.
         """
-        if os.path.exists("fitted_soft_wl_subtree.pkl"):
+        if os.path.exists("fitted_soft_wl_subtree_1.pkl"):
             print(
                 "There is a soft wl subtree kernel fitted before. We will load it directly."
             )
             print(
                 "If you want to re-calculate the similarity matrix, please delete the file '3_fit_wl_subtree_kernel.pkl'."
             )
-            with open("fitted_soft_wl_subtree.pkl", "rb") as f:
+            with open("fitted_soft_wl_subtree_1.pkl", "rb") as f:
                 soft_wl_subtree_ = pickle.load(f)
             Similarity_matrix = soft_wl_subtree_.Similarity_matrix
             print("An overview of the input cellular graphs is as follows: ")
