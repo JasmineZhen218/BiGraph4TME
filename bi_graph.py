@@ -31,6 +31,12 @@ class BiGraph(object):
         self.size_smallest_cluster = size_smallest_cluster  # the size of the smallest patient subgroups (a subgroup smaller than that will be considered isolated patients)
         self.threshold_hodges_lehmann = threshold_hodges_lehmann
         self.seed = seed  # random seed in population graph community detection
+        self.Similarity_matrix = None
+        self.Patient_ids = None
+        self.Population_graph = None
+        self.Patient_subgroups = None
+        self.Characteristic_patterns = None
+
 
     def fit_transform(
         self,
@@ -66,14 +72,14 @@ class BiGraph(object):
         Characteristic_patterns : dict
             The characteristic patterns for each patient subgroup. The key is the subgroup id, and the value is a list of TME pattern id.
         """
-        if os.path.exists("fitted_soft_wl_subtree_1.pkl"):
+        if os.path.exists("fitted_soft_wl_subtree.pkl"):
             print(
                 "There is a soft wl subtree kernel fitted before. We will load it directly."
             )
             print(
-                "If you want to re-calculate the similarity matrix, please delete the file '3_fit_wl_subtree_kernel.pkl'."
+                "If you want to re-calculate the similarity matrix, please delete the file '3_fit_wl_subtree_kernel.py'."
             )
-            with open("fitted_soft_wl_subtree_1.pkl", "rb") as f:
+            with open("fitted_soft_wl_subtree.pkl", "rb") as f:
                 soft_wl_subtree_ = pickle.load(f)
             Similarity_matrix = soft_wl_subtree_.Similarity_matrix
             print("An overview of the input cellular graphs is as follows: ")
@@ -141,6 +147,9 @@ class BiGraph(object):
                 Cell_graphs
             )  # calculate similarity matrix using Soft_WL_Subtree
             print("Similarity matrix calculated.")
+        
+        self.Similarity_matrix = Similarity_matrix
+        self.Patient_ids = Patient_ids
 
         print("Start generating population graph.")
         population_graph_ = Population_Graph(

@@ -51,12 +51,7 @@ class Population_Graph:
         np.fill_diagonal(Similarity_matrix_, 0)  # remove self-similarity
 
         for i in range(Similarity_matrix_.shape[0]):
-            idx = np.argsort(Similarity_matrix_[i])[
-                ::-1
-            ]  # sort the similarity in descending order
-            Similarity_matrix_[i, idx[self.k_clustering :]] = (
-                0  # remove edges that are not in the k nearest neighbors
-            )
+            Similarity_matrix_[i, np.argsort(Similarity_matrix_[i, :])[: -self.k_clustering]] = 0
         adj_1 = np.maximum(
             Similarity_matrix_, Similarity_matrix_.transpose()
         )  # make it symmetric
