@@ -36,6 +36,7 @@ class BiGraph(object):
         self.Population_graph = None
         self.Patient_subgroups = None
         self.Characteristic_patterns = None
+        self.fitted_soft_wl_subtree = None
 
 
     def fit_transform(
@@ -150,6 +151,7 @@ class BiGraph(object):
         
         self.Similarity_matrix = Similarity_matrix
         self.Patient_ids = Patient_ids
+        self.fitted_soft_wl_subtree = soft_wl_subtree_
 
         print("Start generating population graph.")
         population_graph_ = Population_Graph(
@@ -180,14 +182,13 @@ class BiGraph(object):
         explainer_ = Explainer(
             threshold_hodges_lehmann=self.threshold_hodges_lehmann
         )  # initialize Explainer class
-        Characteristic_patterns = explainer_.find_characteristic_patterns(
+        Patient_subgroups = explainer_.find_characteristic_patterns(
             Patient_ids, Patient_subgroups, soft_wl_subtree_.Histograms
         )
         print("Characteristic patterns found.")
         self.Patient_subgroups = Patient_subgroups
         self.Population_graph = Population_graph
-        self.Characteristic_patterns = Characteristic_patterns
-        return Population_graph, Patient_subgroups, Characteristic_patterns
+        return Population_graph, Patient_subgroups
 
     def transform(
         self,

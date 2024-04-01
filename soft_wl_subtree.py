@@ -171,7 +171,8 @@ class Soft_WL_Subtree(object):
         return X_prime, Signatures
 
     def estimate_patterns(self, X):
-        """Given a set of cellular graphs --> generate subtrees --> estimate the pattern belongingness of each subtree
+        """
+        Given a set of cellular graphs --> generate subtrees --> estimate the pattern belongingness of each subtree
         Parameters
         ----------
         X : list
@@ -182,9 +183,11 @@ class Soft_WL_Subtree(object):
         Returns
         -------
         X_prime: list
-            Each element is a tuple: (adj, x)
-            adj is the adjacency matrix (N x N) while x  is the resultant pattern id (N x 1).
-                N: number of nodes in a graph
+            Each element is a tuple: (adj, pattern_ids)
+            - adj is the adjacency matrix (N x N) while x  is the resultant pattern id (N x 1).
+                N: number of nodes in a graph 
+            - pattern_ids: numpy array, shape = [n_nodes]
+                pattern ids of each node
         """
         print(
             "Estimating TME patterns from {} graphs, median number of nodes is {}, node feature dimension is {}".format(
