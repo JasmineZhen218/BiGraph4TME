@@ -120,21 +120,19 @@ class Population_Graph:
             The patient ids in the training set.
         Patient_ids_hat : list of str
             The patient ids in the test set.
-        Patient_subgroups_train : dict
-            The patient subgroups in the training set. The key is the subgroup id, and the value is a list of patient ids.
+        Patient_subgroups_train : list of str
+            The patient subgroups in the training set.
         Similarity_matrix : numpy array (n_patients_train, n_patients_hat)
             The similarity matrix between the training set and the test set.
         Returns
         -------
-        Patient_subgroups_hat : dict
+        Labels_hat : list
             The estimated patient subgroups. The key is the subgroup id, and the value is a list of patient ids.
 
         """
-        Labels_train = np.zeros(Similarity_matrix.shape[0], dtype=int)
+        Labels_train = Patient_subgroups_train
+        assert len(Patient_ids_train) == Similarity_matrix.shape[0]
         Labels_hat = np.zeros(Similarity_matrix.shape[1], dtype=int)
-        for group_id in Patient_subgroups_train:
-            for patient_id in Patient_subgroups_train[group_id]:
-                Labels_train[Patient_ids_train.index(patient_id)] = group_id
         for new_patient in range(Similarity_matrix.shape[1]):
             idx = np.argsort(Similarity_matrix[:, new_patient])[::-1]
             knn_idx = idx[: self.k_estimate]
@@ -147,7 +145,4 @@ class Population_Graph:
                     knn_similarities[knn_labels == unique[j]]
                 )
             Labels_hat[new_patient] = unique[np.argmax(similarities_within_knn)]
-        Patient_subgroups_hat = {i: [] for i in range(len(Patient_subgroups_train))}
-        for i in range(len(Labels_hat)):
-            Patient_subgroups_hat[int(Labels_hat[i])].append(Patient_ids_hat[i])
-        return Patient_subgroups_hat
+        return Labels_hat

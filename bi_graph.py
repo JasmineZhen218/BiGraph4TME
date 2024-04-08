@@ -38,6 +38,52 @@ class BiGraph(object):
         self.Characteristic_patterns = None
         self.fitted_soft_wl_subtree = None
 
+    def sort_subgroups_by_survival(self, Patient_subgroups, survival_data=None):
+        cph = CoxPHFitter()
+        lengths = [
+            survival_data.loc[survival_data["patientID"] == i, "time"].values[0]
+            for i in self.Patient_ids
+        ]
+        statuses = [
+            (
+                0
+                if survival_data.loc[survival_data["patientID"] == i, "status"].values[
+                    0
+                ]
+                == "0:LIVING"
+                else 1
+            )
+            for i in self.Patient_ids
+        ]
+        for i in range(len(Patient_subgroups)):
+            subgroup = Patient_subgroups[i]
+            patient_ids = subgroup["patient_ids"]
+            DF = pd.DataFrame(
+                {
+                    "length": lengths,
+                    "status": statuses,
+                    "community": np.isin(self.Patient_ids, patient_ids),
+                }
+            )
+            cph.fit(
+                DF,
+                duration_col="length",
+                event_col="status",
+                show_progress=False,
+            )
+            Patient_subgroups[i]["hr"] = cph.hazard_ratios_["community"]
+            Patient_subgroups[i]["p"] = cph.summary["p"]["community"]
+            Patient_subgroups[i]["hr_lower"] = np.exp(
+                cph.confidence_intervals_["95% lower-bound"]["community"]
+            )
+            Patient_subgroups[i]["hr_upper"] = np.exp(
+                cph.confidence_intervals_["95% upper-bound"]["community"]
+            )
+
+        Patient_subgroups = sorted(
+            Patient_subgroups, key=lambda x: x["hr"], reverse=True
+        )
+        return Patient_subgroups
 
     def fit_transform(
         self,
@@ -47,6 +93,9 @@ class BiGraph(object):
         celltypeID_colname="celltypeID",
         coorX_colname="coorX",
         coorY_colname="coorY",
+        survival_data=None,
+        status_colname="status",
+        time_colname="time",
     ):
         """
         Parameters
@@ -148,7 +197,7 @@ class BiGraph(object):
                 Cell_graphs
             )  # calculate similarity matrix using Soft_WL_Subtree
             print("Similarity matrix calculated.")
-        
+
         self.Similarity_matrix = Similarity_matrix
         self.Patient_ids = Patient_ids
         self.fitted_soft_wl_subtree = soft_wl_subtree_
@@ -170,7 +219,7 @@ class BiGraph(object):
         )  # detect patient subgroups
         print("Patient subgroups detected.")
         Num_patients_in_subgroups = [
-            len(subgroup['patient_ids']) for subgroup in Patient_subgroups
+            len(subgroup["patient_ids"]) for subgroup in Patient_subgroups
         ]
         print(
             "There are {} patient subgroups, {} ungrouped patients".format(
@@ -178,6 +227,7 @@ class BiGraph(object):
                 len(Patient_ids) - sum(Num_patients_in_subgroups),
             )
         )
+
         print("Start finding characteristic patterns for each patient subgroup.")
         explainer_ = Explainer(
             threshold_hodges_lehmann=self.threshold_hodges_lehmann
@@ -186,6 +236,24 @@ class BiGraph(object):
             Patient_ids, Patient_subgroups, soft_wl_subtree_.Histograms
         )
         print("Characteristic patterns found.")
+        Patient_subgroups = self.sort_subgroups_by_survival(Patient_subgroups)
+        if survival_data is not None:
+            print(
+                "Since survival data is provided, we will sort patient subgroups by survival. But keep in mind, survival data is not touched in TME pattern discovery, patient subgroup detection, and characteristic pattern finding."
+            )
+            survival_data = survival_data.rename(
+                columns={
+                    patientID_colname: "patientID",
+                    time_colname: "time",
+                    status_colname: "status",
+                }
+            )
+            Patient_subgroups = self.sort_subgroups_by_survival(
+                Patient_subgroups, survival_data
+            )
+        # Assign subgroup id
+        for i in range(len(Patient_subgroups)):
+            Patient_subgroups[i]["subgroup_id"] = "S" + str(i + 1)
         self.Patient_subgroups = Patient_subgroups
         self.Population_graph = Population_graph
         return Population_graph, Patient_subgroups
@@ -222,7 +290,7 @@ class BiGraph(object):
             The estimated patient subgroups. The key is the subgroup id, and the value is a list of patient ids.
         """
 
-        singleCell_data = pd.rename(
+        singleCell_data = singleCell_data.rename(
             columns={
                 patientID_colname: "patientID",
                 imageID_colname: "imageID",
@@ -246,11 +314,19 @@ class BiGraph(object):
                 len(singleCell_data) / len(singleCell_data["patientID"].unique()),
             )
         )
-        pass
         cell_graph_ = Cell_Graph()
         Cell_graphs = cell_graph_.generate(singleCell_data)
-        Similarity_matrix = self.soft_wl_subtree.transform(Cell_graphs)
-        Patient_subgroups_hat = self.population_graph_.estimate_community(
-            Similarity_matrix, self.Patient_subgroups
+        Similarity_matrix = self.fitted_soft_wl_subtree.transform(Cell_graphs)
+        population_graph_ = Population_Graph(
+            k_clustering=self.k_patient_clustering,
+            resolution=self.resolution,
+            size_smallest_cluster=self.size_smallest_cluster,
+            seed=self.seed,
+        )
+        Patient_subgroups_hat = population_graph_.estimate_community(
+            Patient_ids_train,
+            Patient_ids_hat,
+            Patient_subgroups_train,
+            Similarity_matrix,
         )
         return Patient_subgroups_hat
