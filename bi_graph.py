@@ -5,6 +5,8 @@ from population_graph import Population_Graph
 from explainer import Explainer
 import os
 import pickle
+import numpy as np
+from lifelines import CoxPHFitter
 
 
 class BiGraph(object):
@@ -71,6 +73,8 @@ class BiGraph(object):
                 event_col="status",
                 show_progress=False,
             )
+            Patient_subgroups[i]["length"] = lengths
+            Patient_subgroups[i]["status"] = statuses
             Patient_subgroups[i]["hr"] = cph.hazard_ratios_["community"]
             Patient_subgroups[i]["p"] = cph.summary["p"]["community"]
             Patient_subgroups[i]["hr_lower"] = np.exp(
@@ -127,8 +131,9 @@ class BiGraph(object):
                 "There is a soft wl subtree kernel fitted before. We will load it directly."
             )
             print(
-                "If you want to re-calculate the similarity matrix, please delete the file '3_fit_wl_subtree_kernel.py'."
+                "If you want to re-fit soft wl subtree kernel, please delete the file 'fitted_soft_wl_subtree.pkl'"
             )
+            print("It takes a while to load the fitted soft wl subtree kernel.")
             with open("fitted_soft_wl_subtree.pkl", "rb") as f:
                 soft_wl_subtree_ = pickle.load(f)
             Similarity_matrix = soft_wl_subtree_.Similarity_matrix
@@ -236,7 +241,6 @@ class BiGraph(object):
             Patient_ids, Patient_subgroups, soft_wl_subtree_.Histograms
         )
         print("Characteristic patterns found.")
-        Patient_subgroups = self.sort_subgroups_by_survival(Patient_subgroups)
         if survival_data is not None:
             print(
                 "Since survival data is provided, we will sort patient subgroups by survival. But keep in mind, survival data is not touched in TME pattern discovery, patient subgroup detection, and characteristic pattern finding."
@@ -323,10 +327,11 @@ class BiGraph(object):
             size_smallest_cluster=self.size_smallest_cluster,
             seed=self.seed,
         )
+        Patient_ids_hat = [cell_graph[0] for cell_graph in Cell_graphs]
         Patient_subgroups_hat = population_graph_.estimate_community(
-            Patient_ids_train,
+            self.Patient_ids,
             Patient_ids_hat,
-            Patient_subgroups_train,
+            self.Patient_subgroups,
             Similarity_matrix,
         )
         return Patient_subgroups_hat
