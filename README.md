@@ -1,15 +1,18 @@
 # BiGraph4TME
-This repo is the official implementation for the `BiGraph` method introduced in **Bi-level Graph Learning Unveils Prognosis-Relevant Breast Tumor Microenvironment Patterns**. \\
+This repo is the official implementation for the `BiGraph` method introduced in **Bi-level Graph Learning Unveils Prognosis-Relevant Breast Tumor Microenvironment Patterns**. 
+
 BiGraph is an unsupervised learning method for multi-scale discovery of tumor microenvironments (TME). It relies on the construction of a bi-level graph model: 
-    - (i) a cellular graph, which models the intricate tumor microenvironment, 
-    - (ii) a population graph that captures inter-patient similarities, given their respective cellular graphs, by means of a **soft** Weisfeiler-Lehman (WL) subtree kernel.
-### requirements
-### how to use it
+
+    * (i) a cellular graph, which models the intricate tumor microenvironment, 
+    * (ii) a population graph that captures inter-patient similarities, given their respective cellular graphs, by means of a **soft** Weisfeiler-Lehman (WL) subtree kernel.
+
+## Requirements
+## How to use it
 ```
 git clone https://github.com/JasmineZhen218/BiGraph4TME.git
 cd BiGraph4TME
 ```
-#### discovery 
+### Discovery 
 Prepare single-cell data (mandatory) and clinical data (optional) of your discovery set
 (conduct any data inclusion, cleaning, and normalization if needed). 
 ```
@@ -54,7 +57,7 @@ population_graph, patient_subgroups = bigraph_.fit_transform(
         time_colname="time",
 )
 ```
-### validation
+### Validation
 Prepare single-cell data (mandatory) and clinical data (optional) of your validation set
 (conduct any data inclusion, cleaning, and normalization if needed). 
 ```
