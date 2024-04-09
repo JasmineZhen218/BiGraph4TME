@@ -24,19 +24,7 @@ survival_d = pd.read_csv(path_to_survival_data_of_discovery_set.csv")
 survival_v = pd.read_csv("path_to_survival_data_of_validation_set.csv") 
 
 ```
-Preprocess data using customized function. Any data inclusion, cleaning, and normalization, and colmnn renaming should be included here.
-```
-# preprocess is a customized function defined by users.
-if survival_d is not None:
-    SC_d, survival_d = preprocess(SC_d, survival_d)  
-else:
-    SC_d = preprocess(SC_d)  
-if survival_v is not None:
-    SC_v, survival_v = preprocess(SC_v, survival_v)  
-else:
-    SC_v = preprocess(SC_v)  
-```
-After preprocessing, each row in `SC_d` and `SC_v` represents a single cell, and it should at least include the following columns:
+Preprocess data by conducting data inclusion, cleaning, normalization, etc. After preprocessing, each row in `SC_d` and `SC_v` represents a single cell, and it should at least include the following columns:
     
 *  `patientID`: patient id; type: string or integer
 *  `imageID`: image id, if each patient has only one image, this it is same as `patientID`; type: string or integer
@@ -44,13 +32,13 @@ After preprocessing, each row in `SC_d` and `SC_v` represents a single cell, and
 *  `coorX`: x coordinate of the cell's spatial location; type: float
 * `coorY`: y coordinate of the cell's spatial location; type: float
 
-If available, after preprocessing, each row in `survival_d` and `survival_v` represents a single patient, and it should at least include the following columns:
+If survival data is available, after preprocessing, each row in `survival_d` and `survival_v` represents a single patient, and it should at least include the following columns:
 
 * `patientID`: patient id, which should match `patientID` in singleCell_d; type: string or integer
 * `status`: Survival Status; type: integer. 
-        for overall survival: 0: alive; 1: death
-        for disease-specific survival: 0: alive; 1: disease-specific death
-        for recurrence-free survival: 0: not recurrent; 1: recurrent
+    * overall survival: 0: alive; 1: death
+    * disease-specific survival: 0: alive; 1: disease-specific death
+    * recurrence-free survival: 0: not recurrent; 1: recurrent
 * `length`: survival time in month; type: float
 
 ## Fit BiGraph model with discovery set
@@ -72,7 +60,7 @@ population_graph_v, patient_subgroups_v = bigraph_.transform(
 
 ```
 
-# Only interested in Soft-WL subtree kernel?
+# Use Soft-WL subtree kernel individually
 ### Fit Soft WL subtree kernel with discovery set
 ```
 from soft_wl_subtree import Soft_WL_Subtree
