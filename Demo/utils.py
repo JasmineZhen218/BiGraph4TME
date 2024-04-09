@@ -118,11 +118,11 @@ def preprocess_Danenberg(singleCell_data, survival_data):
     survival_dc = survival_data.loc[
         survival_data["patientID"].isin(patient_ids_discovery)
     ]
-    survival_dc['status'] = survival_dc['status'].map({'0:LIVING': 0,  '1:DECEASED': 1})
+    survival_dc["status"] = survival_dc["status"].map({"0:LIVING": 0, "1:DECEASED": 1})
     survival_iv = survival_data.loc[
         survival_data["patientID"].isin(patient_ids_inner_validation)
     ]
-    survival_iv['status'] = survival_iv['status'].map({'0:LIVING': 0,  '1:DECEASED': 1})
+    survival_iv["status"] = survival_iv["status"].map({"0:LIVING": 0, "1:DECEASED": 1})
     return SC_dc, SC_iv, survival_dc, survival_iv
 
 
@@ -144,16 +144,13 @@ def preprocess_Jackson(singleCell_data, survival_data):
             len(singleCell_data),
         )
     )
-
     # remove images with less than 500 cells
     print("\nRemove images with less than 500 cells")
     cells_per_image = singleCell_data.groupby("core").size()
     singleCell_data = singleCell_data.loc[
         singleCell_data["core"].isin(cells_per_image[cells_per_image > 500].index)
     ]
-    singleCell_data = pd.merge(
-        singleCell_data, survival_data, on="core", how="inner"
-    )
+    singleCell_data = pd.merge(singleCell_data, survival_data, on="core", how="inner")
     print(
         "{} patients, {} images, and {} cells".format(
             len(singleCell_data["PID"].unique()),
@@ -163,6 +160,33 @@ def preprocess_Jackson(singleCell_data, survival_data):
     )
     SC_ev = singleCell_data
     survival_ev = survival_data
+
+    SC_ev["celltypeID"] = SC_ev["cell_type"].map(get_node_id("Jackson", "CellType"))
+    SC_ev = SC_ev.rename(
+        columns={
+            "PID": "patientID",
+            "core": "imageID",
+            "Location_Center_X": "coorX",
+            "Location_Center_Y": "coorY",
+        }
+    )
+
+    survival_ev = survival_ev.rename(
+        columns={
+            "PID": "patientID",
+            "OSmonth": "time",
+            "Patientstatus": "status",
+        }
+    )
+    survival_ev["status"] = survival_ev["status"].map(
+        {
+            "death by primary disease": 1,
+            "alive w metastases": 0,
+            "death": 1,
+            "alive": 0,
+        }
+    )
+
     return SC_ev, survival_ev
 
 
