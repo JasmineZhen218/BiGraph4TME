@@ -140,7 +140,7 @@ class Population_Graph:
             idx = np.argsort(Similarity_matrix[:, new_patient])[::-1]
             knn_idx = idx[: self.k_estimate]
             knn_labels = Labels_train[knn_idx]
-            knn_similarities = Similarity_matrix[knn_idx, new_patient]
+            knn_similarities = Similarity_matrix[:, new_patient][knn_idx]
             unique, counts = np.unique(knn_labels, return_counts=True)
             similarities_within_knn = np.zeros(len(unique))
             for j in range(len(unique)):
