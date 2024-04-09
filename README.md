@@ -16,18 +16,25 @@ git clone https://github.com/JasmineZhen218/BiGraph4TME.git
 Load and preprocess single cell data (mandatory) and survival data (optional).
 ```
 import pandas as pd
-SC_d = pd.read_csv("path_to_single_cell_data_of_discovery_set.csv") # mandatory 
-survival_d = pd.read_csv(path_to_survival_data_of_discovery_set.csv") # optional
-# if validation set available
-SC_v = pd.read_csv("path_to_single_cell_data_of_validation_set.csv") # optional 
-survival_d = pd.read_csv("path_to_survival_data_of_validarion_set.csv") # optional
+SC_d = pd.read_csv("path_to_single_cell_data_of_discovery_set.csv") 
+SC_v = pd.read_csv("path_to_single_cell_data_of_validation_set.csv")  
+
+# if survival data available
+survival_d = pd.read_csv(path_to_survival_data_of_discovery_set.csv") 
+survival_v = pd.read_csv("path_to_survival_data_of_validation_set.csv") 
+
 ```
 Preprocess data using customized function. Any data inclusion, cleaning, and normalization, and colmnn renaming should be included here.
 ```
-SC_d, survival_d = preprocess(SC_d, survival_d)  # survival_d can be None if unvailable
-# if validation set available
-SC_v, survival_v = preprocess(SC_v, survival_v)  
 # preprocess is a customized function defined by users.
+if survival_d is not None:
+    SC_d, survival_d = preprocess(SC_d, survival_d)  
+else:
+    SC_d = preprocess(SC_d)  
+if survival_v is not None:
+    SC_v, survival_v = preprocess(SC_v, survival_v)  
+else:
+    SC_v = preprocess(SC_v)  
 ```
 After preprocessing, each row in `SC_d` and `SC_v` represents a single cell, and it should at least include the following columns:
     
@@ -37,7 +44,7 @@ After preprocessing, each row in `SC_d` and `SC_v` represents a single cell, and
 *  `coorX`: x coordinate of the cell's spatial location; type: float
 * `coorY`: y coordinate of the cell's spatial location; type: float
 
-After preprocessing, each row in `survival_d` and `survival_v` represents a single patient, and it should at least include the following columns:
+If available, after preprocessing, each row in `survival_d` and `survival_v` represents a single patient, and it should at least include the following columns:
 
 * `patientID`: patient id, which should match `patientID` in singleCell_d; type: string or integer
 * `status`: Survival Status; type: integer. 
