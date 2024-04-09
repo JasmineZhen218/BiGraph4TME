@@ -337,7 +337,7 @@ class BiGraph(object):
                 if patient_subgroup_ids_new[j] == subgroup_id
             ]
             Patient_subgroups_new.append(
-                {"subgroup_id": subgroup_id, "patient_ids": patient_ids_new}
+                {"subgroup_id": subgroup_id+"'", "patient_ids": patient_ids_new}
             )
         if survival_data is not None:
             print(
