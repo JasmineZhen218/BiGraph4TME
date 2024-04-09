@@ -40,22 +40,15 @@ class BiGraph(object):
         self.Characteristic_patterns = None
         self.fitted_soft_wl_subtree = None
 
-    def sort_subgroups_by_survival(self, Patient_subgroups, survival_data=None):
+    def analyze_survival(self, Patient_subgroups, survival_data, Patient_ids):
         cph = CoxPHFitter()
         lengths = [
             survival_data.loc[survival_data["patientID"] == i, "time"].values[0]
-            for i in self.Patient_ids
+            for i in Patient_ids
         ]
         statuses = [
-            (
-                0
-                if survival_data.loc[survival_data["patientID"] == i, "status"].values[
-                    0
-                ]
-                == "0:LIVING"
-                else 1
-            )
-            for i in self.Patient_ids
+            survival_data.loc[survival_data["patientID"] == i, "status"].values[0]
+            for i in Patient_ids
         ]
         for i in range(len(Patient_subgroups)):
             subgroup = Patient_subgroups[i]
@@ -64,7 +57,7 @@ class BiGraph(object):
                 {
                     "length": lengths,
                     "status": statuses,
-                    "community": np.isin(self.Patient_ids, patient_ids),
+                    "community": np.isin(Patient_ids, patient_ids),
                 }
             )
             cph.fit(
@@ -83,10 +76,6 @@ class BiGraph(object):
             Patient_subgroups[i]["hr_upper"] = np.exp(
                 cph.confidence_intervals_["95% upper-bound"]["community"]
             )
-
-        Patient_subgroups = sorted(
-            Patient_subgroups, key=lambda x: x["hr"], reverse=True
-        )
         return Patient_subgroups
 
     def fit_transform(
@@ -243,7 +232,7 @@ class BiGraph(object):
         print("Characteristic patterns found.")
         if survival_data is not None:
             print(
-                "Since survival data is provided, we will sort patient subgroups by survival. But keep in mind, survival data is not touched in TME pattern discovery, patient subgroup detection, and characteristic pattern finding."
+                "Since survival data is provided, we will sort patient subgroups by survival.\\But keep in mind, survival data is not touched in TME pattern discovery, patient subgroup detection, \\and characteristic pattern finding."
             )
             survival_data = survival_data.rename(
                 columns={
@@ -252,9 +241,13 @@ class BiGraph(object):
                     status_colname: "status",
                 }
             )
-            Patient_subgroups = self.sort_subgroups_by_survival(
-                Patient_subgroups, survival_data
+            Patient_subgroups = self.analyze_survival(
+                Patient_subgroups, survival_data, self.Patient_ids
             )
+            Patient_subgroups = sorted(
+                Patient_subgroups, key=lambda x: x["hr"], reverse=True
+            )
+            print("Patient subgroups sorted by hazard ratio.")
         # Assign subgroup id
         for i in range(len(Patient_subgroups)):
             Patient_subgroups[i]["subgroup_id"] = "S" + str(i + 1)
@@ -270,6 +263,9 @@ class BiGraph(object):
         celltypeID_colname="celltypeID",
         coorX_colname="coorX",
         coorY_colname="coorY",
+        survival_data=None,
+        status_colname="status",
+        time_colname="time",
     ):
         """
         Parameters
@@ -318,20 +314,44 @@ class BiGraph(object):
                 len(singleCell_data) / len(singleCell_data["patientID"].unique()),
             )
         )
-        cell_graph_ = Cell_Graph()
-        Cell_graphs = cell_graph_.generate(singleCell_data)
-        Similarity_matrix = self.fitted_soft_wl_subtree.transform(Cell_graphs)
-        population_graph_ = Population_Graph(
-            k_clustering=self.k_patient_clustering,
-            resolution=self.resolution,
-            size_smallest_cluster=self.size_smallest_cluster,
-            seed=self.seed,
+        Cell_graphs = Cell_Graph().generate(singleCell_data)
+        Similarity_to_fitted_data, Similarity_to_new_data = (
+            self.fitted_soft_wl_subtree.transform(Cell_graphs)
         )
-        Patient_ids_hat = [cell_graph[0] for cell_graph in Cell_graphs]
-        Patient_subgroups_hat = population_graph_.estimate_community(
+        population_graph_ = Population_Graph()
+        Patient_ids_new = [cell_graph[0] for cell_graph in Cell_graphs]
+        Population_graph_hat = population_graph_.generate(
+            Similarity_to_new_data, Patient_ids_new
+        )
+        patient_subgroup_ids_new = population_graph_.estimate_community(
             self.Patient_ids,
-            Patient_ids_hat,
             self.Patient_subgroups,
-            Similarity_matrix,
+            Similarity_to_fitted_data,
         )
-        return Patient_subgroups_hat
+        Patient_subgroups_new = []
+        for i in range(len(self.Patient_subgroups)):
+            subgroup_id = self.Patient_subgroups[i]["subgroup_id"]
+            patient_ids_new = [
+                Patient_ids_new[j]
+                for j in range(len(Patient_ids_new))
+                if patient_subgroup_ids_new[j] == subgroup_id
+            ]
+            Patient_subgroups_new.append(
+                {"subgroup_id": subgroup_id, "patient_ids": patient_ids_new}
+            )
+        if survival_data is not None:
+            print(
+                "Since survival data is provided, we will analyze survival of each mapped subgroup. \\But keep in mind, survival data is not touched in subgroup mapping."
+            )
+            survival_data = survival_data.rename(
+                columns={
+                    patientID_colname: "patientID",
+                    time_colname: "time",
+                    status_colname: "status",
+                }
+            )
+            Patient_subgroups_new = self.analyze_survival(
+                Patient_subgroups_new, survival_data, Patient_ids_new
+            )
+            print("Survival analysis done.")
+        return Population_graph_hat, Patient_subgroups_new
