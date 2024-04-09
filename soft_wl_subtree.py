@@ -287,12 +287,12 @@ class Soft_WL_Subtree(object):
                 K[i, j] = np.inner(
                     histogram_i, histogram_j
                 )  # calculate the kernel matrix: inner product of histograms
-            if self.normalize:
-                K[i, j] = K[i, j] / np.sqrt(
-                    np.inner(histogram_i, histogram_i)
-                    * np.inner(histogram_j, histogram_j)
-                )
-                # normalize the kernel matrix
+                if self.normalize:
+                    K[i, j] = K[i, j] / np.sqrt(
+                        np.inner(histogram_i, histogram_i)
+                        * np.inner(histogram_j, histogram_j)
+                    )
+                    # normalize the kernel matrix
         K_itself = np.zeros((n_new, n_new))  # Initialize the kernel matrix
         for i, histogram_i in enumerate(Histograms_new):
             for j, histogram_j in enumerate(Histograms_new):
