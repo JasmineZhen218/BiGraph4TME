@@ -118,9 +118,11 @@ def preprocess_Danenberg(singleCell_data, survival_data):
     survival_dc = survival_data.loc[
         survival_data["patientID"].isin(patient_ids_discovery)
     ]
+    survival_dc['status'] = survival_dc['status'].map({'0:LIVING': 0,  '1:DECEASED': 1})
     survival_iv = survival_data.loc[
         survival_data["patientID"].isin(patient_ids_inner_validation)
     ]
+    survival_iv['status'] = survival_iv['status'].map({'0:LIVING': 0,  '1:DECEASED': 1})
     return SC_dc, SC_iv, survival_dc, survival_iv
 
 
