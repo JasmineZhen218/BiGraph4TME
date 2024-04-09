@@ -24,7 +24,7 @@ survival_d = pd.read_csv(path_to_survival_data_of_discovery_set.csv")
 survival_v = pd.read_csv("path_to_survival_data_of_validation_set.csv") 
 
 ```
-Preprocess data by conducting data inclusion, cleaning, normalization, etc. After preprocessing, each row in `SC_d` and `SC_v` represents a single cell, and it should at least include the following columns:
+Preprocess data by conducting (user-defined) data inclusion, cleaning, normalization, etc. After preprocessing, each row in `SC_d` and `SC_v` represents a single cell, and it should at least include the following columns:
     
 *  `patientID`: patient id; type: string or integer
 *  `imageID`: image id, if each patient has only one image, this it is same as `patientID`; type: string or integer
