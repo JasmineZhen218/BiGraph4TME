@@ -108,7 +108,6 @@ class Population_Graph:
     def estimate_community(
         self,
         Patient_ids_train,
-        Patient_ids_hat,
         Patient_subgroups_train,
         Similarity_matrix,
     ):
@@ -130,9 +129,13 @@ class Population_Graph:
             The estimated patient subgroups. The key is the subgroup id, and the value is a list of patient ids.
 
         """
-        Labels_train = Patient_subgroups_train
+        Labels_train = np.zeros(len(Patient_ids_train), dtype=object)
+        for subgroup in Patient_subgroups_train:
+            subgroup_id = subgroup['subgroup_id']
+            for patient in subgroup["patient_ids"]:
+                Labels_train[Patient_ids_train.index(patient)] = subgroup_id
         assert len(Patient_ids_train) == Similarity_matrix.shape[0]
-        Labels_hat = np.zeros(Similarity_matrix.shape[1], dtype=int)
+        Labels_hat = np.zeros(Similarity_matrix.shape[1], dtype=object)
         for new_patient in range(Similarity_matrix.shape[1]):
             idx = np.argsort(Similarity_matrix[:, new_patient])[::-1]
             knn_idx = idx[: self.k_estimate]
@@ -145,4 +148,5 @@ class Population_Graph:
                     knn_similarities[knn_labels == unique[j]]
                 )
             Labels_hat[new_patient] = unique[np.argmax(similarities_within_knn)]
+        
         return Labels_hat
