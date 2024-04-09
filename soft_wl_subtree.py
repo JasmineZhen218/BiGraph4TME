@@ -7,6 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 
 class Soft_WL_Subtree(object):
     """Calculate the Soft WL subtree kernel"""
+
     def __init__(self, n_iter=0, n_jobs=-1, k=100, normalize=True):
         self.n_iter = n_iter  # number of iterations of graph convolution
         self.n_job = n_jobs  # number of jobs for parallel computation
@@ -18,11 +19,11 @@ class Soft_WL_Subtree(object):
             )
         )
         self.Signatures = None  # initialize the signatures of the TME patterns
-        self.Histograms = None # initialize the histograms of the graphs
-        self.num_patterns = None # initialize the number of patterns
-        self.X = None # initialize the input graphs
-        self.X_prime = None # initialize the graphs with pattern ids
-        self.Similarity_matrix = None # initialize the kernel matrix
+        self.Histograms = None  # initialize the histograms of the graphs
+        self.num_patterns = None  # initialize the number of patterns
+        self.X = None  # initialize the input graphs
+        self.X_prime = None  # initialize the graphs with pattern ids
+        self.Similarity_matrix = None  # initialize the kernel matrix
 
     def graph_convolution(self, adj, x):
         """
@@ -80,7 +81,7 @@ class Soft_WL_Subtree(object):
         Parameters
         ----------
         X: list
-            Each element is a tuple: (adj, x)
+            Each element is a tuple: (patient_id, adj, x)
             adj is the adjacency matrix (N x N) while x is the pattern id matrix (N).
                 N: number of nodes in a graph
         Returns
@@ -89,7 +90,7 @@ class Soft_WL_Subtree(object):
             Each element is a numpy array, shape = [self.n_patterns]
         """
         Histograms = []
-        for i, (_, _, _, x) in enumerate(X):
+        for i, (_, _, x) in enumerate(X):
             histogram = np.zeros(self.num_patterns)
             for j in range(self.num_patterns):
                 histogram[j] = np.sum(x == j)
@@ -165,7 +166,12 @@ class Soft_WL_Subtree(object):
         for i, n in enumerate(N_nodes):  # iterate through the graphs
             end = start + n  # end index of the pattern ids
             X_prime.append(
-                (X[i][0], X[i][1], Subtree_features[start:end, :], Pattern_ids[start:end])
+                (
+                    X[i][0],
+                    X[i][1],
+                    Subtree_features[start:end, :],
+                    Pattern_ids[start:end],
+                )
             )  # append the graph with pattern ids
             start = end  # update the start index
         return X_prime, Signatures
@@ -176,44 +182,32 @@ class Soft_WL_Subtree(object):
         Parameters
         ----------
         X : list
-            Each element is a tuple: (adj, x)
-            adj is the adjacency matrix (N x N) while x is the node label/attribute matrix (N x d).
-                N: number of nodes in a graph
-                d: dimension of node features (e.g., one-hot encoding of cell type)
+            Each element is a tuple: (patient_id, adj, x)
+            patient_id: str
+            adj: numpy array, shape = [n_nodes, n_nodes]
+                adjacency matrix
+            x: numpy array, shape = [n_nodes, n_features]
         Returns
         -------
         X_prime: list
-            Each element is a tuple: (adj, pattern_ids)
+            Each element is a tuple: (patient_id, adj, pattern_ids)
             - adj is the adjacency matrix (N x N) while x  is the resultant pattern id (N x 1).
-                N: number of nodes in a graph 
+                N: number of nodes in a graph
             - pattern_ids: numpy array, shape = [n_nodes]
                 pattern ids of each node
         """
         print(
             "Estimating TME patterns from {} graphs, median number of nodes is {}, node feature dimension is {}".format(
-                len(X), np.median([x[0].shape[0] for x in X]), X[0][1].shape[1]
+                len(X), np.median([x[1].shape[0] for x in X]), X[0][2].shape[1]
             )
         )
-        Subtree_features = []
-        N_nodes = []
-        print("\t 1) Graph Convolution")
-        for i, (adj, x) in enumerate(X):
-            subtree_feature = self.graph_convolution(adj, x)
-            Subtree_features.append(subtree_feature)
-            N_nodes.append(subtree_feature.shape[0])
-        Subtree_features = np.concatenate(Subtree_features, axis=0)
-        print("\t 2) Estimating Pattern Ids")
-        Pattern_ids = self.closest_cluster_mapping(Subtree_features, self.Signatures)
+        neigh = NearestNeighbors(n_neighbors=1)
+        neigh.fit(self.Signatures)
         X_prime = []
-        print("\t 3) Assigning Pattern Ids to Subtrees")
-        start = 0  # start index of the pattern ids
-        for i, n in enumerate(N_nodes):  # iterate through the graphs
-            end = start + n  # end index of the pattern ids
-            X_prime.append(
-                (X[i][0], Pattern_ids[start:end])
-            )  # append the graph with pattern ids
-            start = end  # update the start index
-        
+        for i, (patient_id, adj, x) in enumerate(X):
+            subtree_feature = self.graph_convolution(adj, x)
+            _, indices = neigh.kneighbors(subtree_feature)
+            X_prime.append((patient_id, adj, indices.flatten()))
         return X_prime
 
     def fit_transform(self, X):
@@ -238,7 +232,7 @@ class Soft_WL_Subtree(object):
         self.X = X  # store the input graphs
         self.X_prime = X_prime  # store the graphs with pattern ids
         self.Signatures = Signatures  # store the signatures
-        self.num_patterns = len(Signatures) # store the number of patterns
+        self.num_patterns = len(Signatures)  # store the number of patterns
         Histograms = self.compute_histograms(X_prime)  # compute the histograms
         self.Histograms = Histograms  # store the histograms
         # Initialize the kernel matrix
@@ -254,8 +248,8 @@ class Soft_WL_Subtree(object):
             K = K / np.sqrt(
                 np.outer(np.diag(K), np.diag(K))
             )  # normalize the kernel matrix
-        self.Similarity_matrix = K # store the kernel matrix
-        return K # return the kernel matrix
+        self.Similarity_matrix = K  # store the kernel matrix
+        return K  # return the kernel matrix
 
     def transform(self, X):
         """Calculate the kernel matrix, between the fitted graphs and the (unseen) input graphs
@@ -293,8 +287,18 @@ class Soft_WL_Subtree(object):
                 K[i, j] = np.inner(
                     histogram_i, histogram_j
                 )  # calculate the kernel matrix: inner product of histograms
+            if self.normalize:
+                K[i, j] = K[i, j] / np.sqrt(
+                    np.inner(histogram_i, histogram_i)
+                    * np.inner(histogram_j, histogram_j)
+                )
+                # normalize the kernel matrix
+        K_itself = np.zeros((n_new, n_new))  # Initialize the kernel matrix
+        for i, histogram_i in enumerate(Histograms_new):
+            for j, histogram_j in enumerate(Histograms_new):
+                K_itself[i, j] = np.inner(histogram_i, histogram_j)
         if self.normalize:
-            K = K / np.sqrt(
-                np.outer(np.diag(K), np.diag(K))
-            )  # normalize the kernel matrix
-        return K
+            K_itself = K_itself / np.sqrt(
+                np.outer(np.diag(K_itself), np.diag(K_itself))
+            )
+        return K, K_itself
