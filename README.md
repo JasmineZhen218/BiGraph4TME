@@ -41,6 +41,8 @@ If survival data is available, after preprocessing, each row in `survival_d` and
     * recurrence-free survival: 0: not recurrent; 1: recurrent
 * `length`: survival time in month; type: float
 
+Missing values in these required columns will raise errors.
+
 ## Fit BiGraph model with discovery set
 ```
 from bi_graph import BiGraph
