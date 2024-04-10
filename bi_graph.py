@@ -315,7 +315,7 @@ class BiGraph(object):
             )
         )
         Cell_graphs = Cell_Graph().generate(singleCell_data)
-        Similarity_to_fitted_data, Similarity_to_new_data = (
+        Similarity_to_fitted_data, Similarity_to_new_data, Histograms_new_data = (
             self.fitted_soft_wl_subtree.transform(Cell_graphs)
         )
         population_graph_ = Population_Graph()
@@ -354,4 +354,4 @@ class BiGraph(object):
                 Patient_subgroups_new, survival_data, Patient_ids_new
             )
             print("Survival analysis done.")
-        return Population_graph_hat, Patient_subgroups_new
+        return Population_graph_hat, Patient_subgroups_new, Histograms_new_data

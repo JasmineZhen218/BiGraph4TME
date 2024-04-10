@@ -301,4 +301,4 @@ class Soft_WL_Subtree(object):
             K_itself = K_itself / np.sqrt(
                 np.outer(np.diag(K_itself), np.diag(K_itself))
             )
-        return K, K_itself
+        return K, K_itself, Histograms_new
