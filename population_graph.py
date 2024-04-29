@@ -20,18 +20,6 @@ class Population_Graph:
         self.size_smallest_cluster = (
             size_smallest_cluster  # the size of the smallest cluster
         )
-        print(
-            "Initialized Population_Graph, k_clustering = ",
-            k_clustering,
-            ", k_estimate = ",
-            k_estimate,
-            ", resolution = ",
-            resolution,
-            ", size_smallest_cluster = ",
-            size_smallest_cluster,
-            ", seed = ",
-            seed,
-        )
 
     def generate(self, Similarity_matrix, Patient_ids):
         """
@@ -103,9 +91,6 @@ class Population_Graph:
             Patient_subgroups.append(
                 {"patient_ids": [G_population.nodes[n]["patientID"] for n in c]}
             )
-
-        
-
         return Patient_subgroups
 
     def estimate_community(

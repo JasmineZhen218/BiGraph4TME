@@ -16,6 +16,7 @@ class BiGraph(object):
         n_iter=0,
         k_subtree_clustering=100,
         k_patient_clustering=30,
+        k_estimate = 3,
         resolution=1.0,
         size_smallest_cluster=10,
         threshold_hodges_lehmann=0.5,
@@ -29,6 +30,7 @@ class BiGraph(object):
         self.k_patient_clustering = (
             k_patient_clustering  # decides the coarseness of patient clustering
         )
+        self.k_estimate = k_estimate  # number of nearest neighbors for estimating the community
         self.resolution = resolution  # resolution parameter for community detection
         self.size_smallest_cluster = size_smallest_cluster  # the size of the smallest patient subgroups (a subgroup smaller than that will be considered isolated patients)
         self.threshold_hodges_lehmann = threshold_hodges_lehmann
@@ -318,7 +320,7 @@ class BiGraph(object):
         Similarity_to_fitted_data, Similarity_to_new_data, Histograms_new_data = (
             self.fitted_soft_wl_subtree.transform(Cell_graphs)
         )
-        population_graph_ = Population_Graph()
+        population_graph_ = Population_Graph(k_estimate = self.k_estimate)
         Patient_ids_new = [cell_graph[0] for cell_graph in Cell_graphs]
         Population_graph_hat = population_graph_.generate(
             Similarity_to_new_data, Patient_ids_new
