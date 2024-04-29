@@ -1,5 +1,5 @@
 # BiGraph4TME
-This repo is the official implementation for the `BiGraph` method introduced in **Bi-level Graph Learning Unveils Prognosis-Relevant Breast Tumor Microenvironment Patterns**. 
+This repo is the official implementation for the `BiGraph` method introduced in *Bi-level Graph Learning Unveils Prognosis-Relevant Tumor Microenvironment Patterns from Breast Multiplexed Digital Pathology*. 
 
 BiGraph is an unsupervised learning method for multi-scale discovery of tumor microenvironments (TME). It relies on the construction of a bi-level graph model: 
     
@@ -77,26 +77,30 @@ population_graph_v, patient_subgroups_v = bigraph_.transform(
 ```
 
 # Use Soft-WL subtree kernel without BiGraph
-### Fit Soft WL subtree kernel with a discovery set
-```
-from soft_wl_subtree import Soft_WL_Subtree
-soft_wl_subtree_ = Soft_WL_Subtree()
-Similarity_matrix = soft_wl_subtree_.fit_transform(
-    SC_d
-)
 
 ```
-Retrive identified TME patterns
+from soft_wl_subtree import Soft_WL_Subtree
+from cell_graph import Cell_Graph 
+cell_graph_ = Cell_Graph(a = 0.01)
+Cell_graphs = cell_graph_.generate(SC_d)
+soft_wl_subtree_ = Soft_WL_Subtree(n_iter = 2, k = 100, normalize = True)
+Similarity_matrix = soft_wl_subtree_.fit_transform(
+    Cell_graphs
+)
+```
+#### Hyperparameters
+For Cell_Graph()
+*   `a`: scaler in Gaussian kernel how edge weight decrease with cell-cell spatial distance increases. ($w = \text{exp}(-ad^2)$, where $w$ is edge weight, $d$ is cell-cell spatial distance in um). Default is 0.01.
+
+For Soft_WL_Subtree()
+* `n_iter`: number of iterations of graph convolution (depth of subtree), the default is 2.
+* `k`: decide coarseness of subtree clustering, the default is 100.
+* `normalize`: wether normalize the similarity to [0,1] when comparing two cellular graphs, the default is True.
+#### Retrive identified TME patterns
  ```
 num_patterns = self.num_patterns # number of identified patterns
 Signatures = self.Signatures # Signatures (i.e., cluster centroids of identified TME patterns, array: (n_pattern, n_feature))
 Histograms = self.Histograms # Histogram of TME patterns for patients, [array: (n_patterns)]
-```
-### Estimate TME patterns for validation data
-```
-Similarity_matrix = soft_wl_subtree_.transform(
-    SC_v
-)
 ```
 
 
