@@ -103,6 +103,9 @@ class Population_Graph:
             Patient_subgroups.append(
                 {"patient_ids": [G_population.nodes[n]["patientID"] for n in c]}
             )
+
+        
+
         return Patient_subgroups
 
     def estimate_community(
