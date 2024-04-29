@@ -6,6 +6,7 @@ BiGraph is an unsupervised learning method for multi-scale discovery of tumor mi
  (i) a cellular graph, that models the intricate tumor microenvironment, 
 
 (ii) a population graph that captures inter-patient similarities, given their respective cellular graphs, by means of a **soft** Weisfeiler-Lehman (WL) subtree kernel.
+![](graph_abstract.png)
 
 # Requirements
 # How to use it
