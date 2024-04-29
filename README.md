@@ -10,8 +10,11 @@ BiGraph is an unsupervised learning method for multi-scale discovery of tumor mi
 
 # Requirements
 # How to use it
+In terminal,
 ```
 git clone https://github.com/JasmineZhen218/BiGraph4TME.git
+cd BiGraph4TME
+pip install -r requirements.txt
 ```
 ## Data Preparation
 Load and preprocess single-cell data (mandatory) and survival data (optional).
