@@ -81,7 +81,7 @@ class Soft_WL_Subtree(object):
         Parameters
         ----------
         X: list
-            Each element is a tuple: (patient_id, adj, x)
+            Each element is a tuple: (patient_id, adj, subtree_features, x)
             adj is the adjacency matrix (N x N) while x is the pattern id matrix (N).
                 N: number of nodes in a graph
         Returns
@@ -90,7 +90,7 @@ class Soft_WL_Subtree(object):
             Each element is a numpy array, shape = [self.n_patterns]
         """
         Histograms = []
-        for i, (_, _, x) in enumerate(X):
+        for i, (_, _,_, x) in enumerate(X):
             histogram = np.zeros(self.num_patterns)
             for j in range(self.num_patterns):
                 histogram[j] = np.sum(x == j)
@@ -190,7 +190,7 @@ class Soft_WL_Subtree(object):
         Returns
         -------
         X_prime: list
-            Each element is a tuple: (patient_id, adj, pattern_ids)
+            Each element is a tuple: (patient_id, adj, subtree_features, pattern_ids)
             - adj is the adjacency matrix (N x N) while x  is the resultant pattern id (N x 1).
                 N: number of nodes in a graph
             - pattern_ids: numpy array, shape = [n_nodes]

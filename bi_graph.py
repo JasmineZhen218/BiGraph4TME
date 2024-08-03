@@ -21,6 +21,7 @@ class BiGraph(object):
         size_smallest_cluster=10,
         threshold_hodges_lehmann=0.5,
         seed=1,
+        soft_wl_save_path = 'fitted_soft_wl_subtree'
     ):
         self.a = a  # parameter for edge weight calculation in cell graph  $w_{ij} = \exp(-a \cdot d_{ij}^2)$
         self.n_iter = n_iter  # number of iterations
@@ -41,6 +42,7 @@ class BiGraph(object):
         self.Patient_subgroups = None
         self.Characteristic_patterns = None
         self.fitted_soft_wl_subtree = None
+        self.soft_wl_save_path = soft_wl_save_path
 
     def analyze_survival(self, Patient_subgroups, survival_data, Patient_ids):
         cph = CoxPHFitter()
@@ -117,15 +119,15 @@ class BiGraph(object):
         Characteristic_patterns : dict
             The characteristic patterns for each patient subgroup. The key is the subgroup id, and the value is a list of TME pattern id.
         """
-        if os.path.exists("fitted_soft_wl_subtree.pkl"):
+        if os.path.exists(self.soft_wl_save_path+".pkl"):
             print(
-                "There is a soft wl subtree kernel fitted before. We will load it directly."
+                "There is a soft wl subtree kernel fitted before. We will load it directly from {}.pkl".format(self.soft_wl_save_path)
             )
             print(
                 "If you want to re-fit soft wl subtree kernel, please delete the file 'fitted_soft_wl_subtree.pkl'"
             )
             print("It takes a while to load the fitted soft wl subtree kernel.")
-            with open("fitted_soft_wl_subtree.pkl", "rb") as f:
+            with open(self.soft_wl_save_path+".pkl", "rb") as f:
                 soft_wl_subtree_ = pickle.load(f)
             Similarity_matrix = soft_wl_subtree_.Similarity_matrix
             print("An overview of the input cellular graphs is as follows: ")
@@ -145,6 +147,7 @@ class BiGraph(object):
             print("An overview of the identified patterns is as follows: ")
             Signatures = soft_wl_subtree_.Signatures
             print("\t {} discovered patterns.".format(len(Signatures)))
+            
         else:
             singleCell_data = singleCell_data.rename(
                 columns={
@@ -193,6 +196,10 @@ class BiGraph(object):
                 Cell_graphs
             )  # calculate similarity matrix using Soft_WL_Subtree
             print("Similarity matrix calculated.")
+            # Save the fitted soft wl subtree kernel
+            with open(self.soft_wl_save_path+".pkl", "wb") as f:
+                pickle.dump(soft_wl_subtree_, f)
+
 
         self.Similarity_matrix = Similarity_matrix
         self.Patient_ids = Patient_ids
