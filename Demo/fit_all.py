@@ -43,8 +43,3 @@ population_graph_discovery, patient_subgroups_discovery = bigraph_.fit_transform
     SC_d, 
     survival_data = survival_d
 )
-
-Population_graph_hat, Patient_subgroups_hat = bigraph_.transform(
-    SC_iv,
-    survival_data = survival_iv
-)
