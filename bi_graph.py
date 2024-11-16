@@ -124,7 +124,7 @@ class BiGraph(object):
                 "There is a soft wl subtree kernel fitted before. We will load it directly from {}.pkl".format(self.soft_wl_save_path)
             )
             print(
-                "If you want to re-fit soft wl subtree kernel, please delete the file 'fitted_soft_wl_subtree.pkl'"
+                "If you want to re-fit soft wl subtree kernel, please delete the file '{}.pkl'".format(self.soft_wl_save_path)
             )
             print("It takes a while to load the fitted soft wl subtree kernel.")
             with open(self.soft_wl_save_path+".pkl", "rb") as f:
@@ -324,7 +324,7 @@ class BiGraph(object):
             )
         )
         Cell_graphs = Cell_Graph().generate(singleCell_data)
-        Similarity_to_fitted_data, Similarity_to_new_data, Histograms_new_data = (
+        Similarity_to_fitted_data, Similarity_to_new_data, Histograms_new_data, Signature_new_data = (
             self.fitted_soft_wl_subtree.transform(Cell_graphs)
         )
         population_graph_ = Population_Graph(k_estimate = self.k_estimate)
@@ -363,4 +363,4 @@ class BiGraph(object):
                 Patient_subgroups_new, survival_data, Patient_ids_new
             )
             print("Survival analysis done.")
-        return Population_graph_hat, Patient_subgroups_new, Histograms_new_data
+        return Population_graph_hat, Patient_subgroups_new, Histograms_new_data, Signature_new_data

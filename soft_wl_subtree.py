@@ -202,12 +202,13 @@ class Soft_WL_Subtree(object):
             )
         )
         neigh = NearestNeighbors(n_neighbors=1)
+        #Signature_norm =  (self.Signatures - np.mean(self.Signatures, axis=0)) / np.std(self.Signatures, axis=0)
         neigh.fit(self.Signatures)
         X_prime = []
         for i, (patient_id, adj, x) in enumerate(X):
             subtree_feature = self.graph_convolution(adj, x)
             _, indices = neigh.kneighbors(subtree_feature)
-            X_prime.append((patient_id, adj, indices.flatten()))
+            X_prime.append((patient_id, adj, subtree_feature, indices.flatten()))
         return X_prime
 
     def fit_transform(self, X):
@@ -270,6 +271,15 @@ class Soft_WL_Subtree(object):
         X_prime = self.estimate_patterns(
             X
         )  # estimate the pattern belongingness of each subtree
+        Subtree_features_new = np.concatenate(
+            [x[2] for x in X_prime], axis=0
+        )
+        Pattern_ids_new = np.concatenate(
+            [x[3] for x in X_prime], axis=0
+        )
+        Signatures_new = self.compute_cluster_centroids(
+            Subtree_features_new, Pattern_ids_new
+        ) # compute the cluster centroids --> signature of each TME pattern for new graphs
         Histograms = self.compute_histograms(X_prime)  # compute the histograms
         Histograms_fitted = (
             self.Histograms
@@ -301,4 +311,4 @@ class Soft_WL_Subtree(object):
             K_itself = K_itself / np.sqrt(
                 np.outer(np.diag(K_itself), np.diag(K_itself))
             )
-        return K, K_itself, Histograms_new
+        return K, K_itself, Histograms_new, Signatures_new
