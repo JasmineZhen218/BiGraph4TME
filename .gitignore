@@ -4,3 +4,4 @@ nohup.out
 /Demo/Datasets/*
 /Demo/TNBC.ipynb
 /Demo/fit_TNBC.py
+.venv
