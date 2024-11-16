@@ -2,3 +2,5 @@ nohup.out
 *.pkl
 *.csv
 /Demo/Datasets/*
+/Demo/TNBC.ipynb
+/Demo/fit_TNBC.py
