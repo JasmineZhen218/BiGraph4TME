@@ -9,7 +9,7 @@ BiGraph is an unsupervised learning method for multi-scale discovery of tumor mi
 ![](graph_abstract.png)
 
 
-# How to use it
+# Install
 ```
 git clone https://github.com/JasmineZhen218/BiGraph4TME.git
 cd BiGraph4TME
@@ -17,11 +17,11 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
-## Reproduce figures in the paper
+# Reproduce figures in the paper
 See [Demo/README.md](Demo/README.md)
 
-## Apply to your Own Data
-### 1. Data Preparation
+# Apply to your Own Data
+## 1. Data Preparation
 Load and preprocess single-cell data (mandatory) and survival data (optional).
 ```
 import pandas as pd
@@ -52,7 +52,7 @@ If survival data is available, after preprocessing, each row in `survival_d` and
 
 Missing values in these required columns will raise errors.
 
-### 2. Fit BiGraph model with discovery set
+## 2. Fit BiGraph model with discovery set
 ```
 from bi_graph import BiGraph
 bigraph_ = BiGraph()
@@ -61,7 +61,7 @@ population_graph, patient_subgroups = bigraph_.fit_transform(
     survival_data = survival_d
 )
 ```
-#### Hyperparameters for BiGraph model
+### Hyperparameters for BiGraph model
 * `a`: scaler in Gaussian kernel how edge weight decrease with cell-cell spatial distance increases. ($w = \text{exp}(-ad^2)$, where $w$ is edge weight, $d$ is cell-cell spatial distance in um). Default is 0.01.
 * `n_iter`: number of iterations of graph convolution, controlling depth of explored subtrees. Default is 2.
 * `k_subtree_clustering`: decide coarseness of subtree clustering. Default is 100.
@@ -72,7 +72,7 @@ population_graph, patient_subgroups = bigraph_.fit_transform(
 *  `threshold_hodges_lehmann`: determine the number of characteristic patterns for each patient subgroup, Default is 0.2.
 
  
-### 3. Validate BiGraph model with validation set
+## 3. Validate BiGraph model with validation set
 ```
 population_graph_v, patient_subgroups_v, histograms_v, Signature_v = bigraph_.transform(
     SC_v,
