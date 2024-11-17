@@ -1,5 +1,5 @@
 # BiGraph4TME
-This repo is the official implementation for the `BiGraph` method introduced in *Bi-level Graph Learning Unveils Prognosis-Relevant Tumor Microenvironment Patterns from Breast Multiplexed Digital Pathology*. 
+This repo is the official implementation for the `BiGraph` method introduced in *Bi-level Graph Learning Unveils Prognosis-Relevant Tumor Microenvironment Patterns in Breast Multiplexed Digital Pathology*. 
 
 BiGraph is an unsupervised learning method for multi-scale discovery of tumor microenvironments (TME). It relies on the construction of a bi-level graph model: 
     
@@ -8,15 +8,20 @@ BiGraph is an unsupervised learning method for multi-scale discovery of tumor mi
 (ii) a population graph that captures inter-patient similarities, given their respective cellular graphs, by means of a **soft** Weisfeiler-Lehman (WL) subtree kernel.
 ![](graph_abstract.png)
 
-# Requirements
+
 # How to use it
-In terminal,
 ```
 git clone https://github.com/JasmineZhen218/BiGraph4TME.git
 cd BiGraph4TME
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
-## Data Preparation
+## Reproduce figures in the paper
+See [Demo/README.md](Demo/README.md)
+
+## Apply to your Own Data
+### 1. Data Preparation
 Load and preprocess single-cell data (mandatory) and survival data (optional).
 ```
 import pandas as pd
@@ -47,7 +52,7 @@ If survival data is available, after preprocessing, each row in `survival_d` and
 
 Missing values in these required columns will raise errors.
 
-## Fit BiGraph model with discovery set
+### 2. Fit BiGraph model with discovery set
 ```
 from bi_graph import BiGraph
 bigraph_ = BiGraph()
@@ -67,9 +72,9 @@ population_graph, patient_subgroups = bigraph_.fit_transform(
 *  `threshold_hodges_lehmann`: determine the number of characteristic patterns for each patient subgroup, Default is 0.2.
 
  
-## Validate BiGraph model with validation set
+### 3. Validate BiGraph model with validation set
 ```
-population_graph_v, patient_subgroups_v = bigraph_.transform(
+population_graph_v, patient_subgroups_v, histograms_v, Signature_v = bigraph_.transform(
     SC_v,
     survival_data = survival_v
 )
@@ -104,8 +109,6 @@ Histograms = self.Histograms # Histogram of TME patterns for patients, [array: (
 ```
 
 
-# Reproduce results in Paper
-Check `Demo/BiGraph Applied to Breast Cancer.ipynb`
 # Citation
 ```
 @article{wang2024bi,
