@@ -7,3 +7,4 @@ PhenoGraph==1.5.7
 scikit_learn==1.2.1
 scipy==1.8.0
 seaborn==0.11.2
+statannotations==0.6.0
