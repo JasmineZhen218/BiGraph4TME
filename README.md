@@ -37,7 +37,7 @@ Preprocess data by conducting (user-defined) data inclusion, cleaning, normaliza
     
 *  `patientID`: patient id; type: string or integer
 *  `imageID`: image id, if each patient has only one image, this it is same as `patientID`; type: string or integer
-*  `celltypeID`: cell type; type: integer
+*  `celltypeID`: cell type; type: integer. **Please make sure that unique cell types are consecutive integers, starting from zero**
 *  `coorX`: x coordinate of the cell's spatial location; type: float
 * `coorY`: y coordinate of the cell's spatial location; type: float
 
