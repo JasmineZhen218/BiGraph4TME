@@ -38,7 +38,7 @@ SC_d_raw = pd.read_csv(os.path.join(PROJECT_ROOT, 'Datasets/Danenberg_et_al/cell
 survival_d_raw = pd.read_csv(os.path.join(PROJECT_ROOT,'Datasets/Danenberg_et_al/clinical.csv'))
 SC_d, SC_iv, survival_d, survival_iv = preprocess_Danenberg(SC_d_raw, survival_d_raw)
 
-bigraph_ = BiGraph(k_patient_clustering = 30)
+bigraph_ = BiGraph(k_patient_clustering = 30, soft_wl_save_path = os.path.join(PROJECT_ROOT, 'Fitted_swl/Danenberg/fitted_soft_wl_subtree_sample.pkl'), sample_frac=0.1)
 population_graph_discovery, patient_subgroups_discovery = bigraph_.fit_transform(
     SC_d, 
     survival_data = survival_d

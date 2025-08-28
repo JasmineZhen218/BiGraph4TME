@@ -201,7 +201,7 @@ class Soft_WL_Subtree(object):
 
             # Package: patient id, sub-adj, sub-features, pattern ids, and kept indices
             X_prime.append(
-                (patient_id, adj_sub, feat_sub, pattern_ids_sub, kept_idx)
+                (patient_id, adj_sub, feat_sub, pattern_ids_sub)
             )
 
             start = end

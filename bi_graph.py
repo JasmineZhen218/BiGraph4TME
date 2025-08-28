@@ -21,7 +21,8 @@ class BiGraph(object):
         size_smallest_cluster=10,
         threshold_hodges_lehmann=0.5,
         seed=1,
-        soft_wl_save_path = 'fitted_soft_wl_subtree'
+        soft_wl_save_path = 'fitted_soft_wl_subtree',
+        sample_frac=0.8
     ):
         self.a = a  # parameter for edge weight calculation in cell graph  $w_{ij} = \exp(-a \cdot d_{ij}^2)$
         self.n_iter = n_iter  # number of iterations
@@ -43,6 +44,7 @@ class BiGraph(object):
         self.Characteristic_patterns = None
         self.fitted_soft_wl_subtree = None
         self.soft_wl_save_path = soft_wl_save_path
+        self.sample_frac = sample_frac  # fraction of data to use for fitting soft wl subtree kernel
 
     def analyze_survival(self, Patient_subgroups, survival_data, Patient_ids):
         cph = CoxPHFitter()
@@ -93,7 +95,7 @@ class BiGraph(object):
         survival_data=None,
         status_colname="status",
         time_colname="time",
-        sample_frac=0.8,
+     
     ):
         """
         Parameters
@@ -195,7 +197,7 @@ class BiGraph(object):
                 n_iter=self.n_iter, k=self.k_subtree_clustering
             )  # initialize Soft_WL_Subtree class with parameters n_iter and k
             Similarity_matrix = soft_wl_subtree_.fit_transform(
-                Cell_graphs, sample_frac=sample_frac
+                Cell_graphs, sample_frac=self.sample_frac
             )  # calculate similarity matrix using Soft_WL_Subtree
             print("Similarity matrix calculated.")
             # Save the fitted soft wl subtree kernel
