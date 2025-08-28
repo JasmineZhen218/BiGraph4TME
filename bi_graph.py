@@ -149,6 +149,7 @@ class BiGraph(object):
             print("\t {} discovered patterns.".format(len(Signatures)))
             
         else:
+            os.makedirs(os.path.dirname(self.soft_wl_save_path), exist_ok=True)
             singleCell_data = singleCell_data.rename(
                 columns={
                     patientID_colname: "patientID",
