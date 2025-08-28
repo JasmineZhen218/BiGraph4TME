@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from lifelines import CoxPHFitter
 from definitions import patient_ids_discovery, patient_ids_inner_validation, get_node_id
-
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 from sklearn.neighbors import NearestNeighbors
 
