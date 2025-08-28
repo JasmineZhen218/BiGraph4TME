@@ -93,6 +93,7 @@ class BiGraph(object):
         survival_data=None,
         status_colname="status",
         time_colname="time",
+        sample_frac=0.8,
     ):
         """
         Parameters
@@ -194,7 +195,7 @@ class BiGraph(object):
                 n_iter=self.n_iter, k=self.k_subtree_clustering
             )  # initialize Soft_WL_Subtree class with parameters n_iter and k
             Similarity_matrix = soft_wl_subtree_.fit_transform(
-                Cell_graphs
+                Cell_graphs, sample_frac=sample_frac
             )  # calculate similarity matrix using Soft_WL_Subtree
             print("Similarity matrix calculated.")
             # Save the fitted soft wl subtree kernel
