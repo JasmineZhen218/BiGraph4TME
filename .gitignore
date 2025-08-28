@@ -5,4 +5,8 @@ nohup.out
 /Demo/TNBC.ipynb
 /Demo/fit_TNBC.py
 /Demo/Results/*
+/Demo/fig*.py
+/Demo/AllonGraph/
+/Demo/baseline.ipynb
+/Demo/fit_tnbc.py
 .venv

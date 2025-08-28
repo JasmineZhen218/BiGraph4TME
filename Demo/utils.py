@@ -245,7 +245,48 @@ def preprocess_Wang(singleCell_data, survival_data):
 
     return SC_ev, survival_ev
 
+def preprocess_Wangv2(singleCell_data, survival_data):
+    print("Initially,")
+    print(
+        "{} patients, {} images, and {} cells".format(
+            len(singleCell_data["PatientID"].unique()),
+            len(singleCell_data["ImageID"].unique()),
+            len(singleCell_data),
+        )
+    )
 
+    print("\nRemove images with less than 500 cells")
+    cells_per_image = singleCell_data.groupby("ImageID").size()
+    singleCell_data = singleCell_data.loc[
+        singleCell_data["ImageID"].isin(cells_per_image[cells_per_image > 500].index)
+    ]
+    print(
+        "{} patients, {} images, and {} cells".format(
+            len(singleCell_data["PatientID"].unique()),
+            len(singleCell_data["ImageID"].unique()),
+            len(singleCell_data),
+        )
+    )
+    SC_ev = singleCell_data
+    survival_ev = survival_data
+
+    SC_ev["celltypeID"] = SC_ev["Label"].map(get_node_id("Wang", "CellType"))
+    SC_ev['patientID'] = SC_ev['PatientID'].astype(str) + '_' + SC_ev['BiopsyPhase'].astype(str)
+    SC_ev = SC_ev.rename(
+        columns={
+            "ImageNumber": "imageID",
+            "Location_Center_X": "coorX",
+            "Location_Center_Y": "coorY",
+        }
+    )
+
+    survival_ev = survival_ev.rename(
+        columns={
+            "PatientID": "patientID"}
+    )
+
+
+    return SC_ev, survival_ev
 
 def reverse_dict(D):
     return {v: k for k, v in D.items()}

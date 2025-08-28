@@ -25,10 +25,10 @@ pip install -r requirements.txt
 ## 3. Fit BiGraph Model
 ```
 cd Demo
-export OPENBLAS_NUM_THREADS=1
-export GOTO_NUM_THREADS=1
-export OMP_NUM_THREADS=1
-python fit_all.py
+export OPENBLAS_NUM_THREADS=1 export GOTO_NUM_THREADS=1 export OMP_NUM_THREADS=1 python fit_all.py
+
+
+
 ```
 ## 4. Reproduce figures
 ```

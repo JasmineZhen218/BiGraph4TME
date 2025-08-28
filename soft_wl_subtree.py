@@ -209,6 +209,7 @@ class Soft_WL_Subtree(object):
             subtree_feature = self.graph_convolution(adj, x)
             _, indices = neigh.kneighbors(subtree_feature)
             X_prime.append((patient_id, adj, subtree_feature, indices.flatten()))
+        print("TME patterns estimation finished")
         return X_prime
 
     def fit_transform(self, X):
@@ -230,8 +231,8 @@ class Soft_WL_Subtree(object):
             all pairs of graphs between target an features
         """
         X_prime, Signatures = self.discover_patterns(X)  # discover the TME patterns
-        self.X = X  # store the input graphs
-        self.X_prime = X_prime  # store the graphs with pattern ids
+        # self.X = X  # store the input graphs
+        # self.X_prime = X_prime  # store the graphs with pattern ids
         self.Signatures = Signatures  # store the signatures
         self.num_patterns = len(Signatures)  # store the number of patterns
         Histograms = self.compute_histograms(X_prime)  # compute the histograms

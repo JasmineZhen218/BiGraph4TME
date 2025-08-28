@@ -514,7 +514,7 @@ color_palette_clinical = {
     "HR-/HER2+": sns.color_palette("Set3")[4],
     "HER2+": sns.color_palette("tab10")[9],
     "TNBC": sns.color_palette("Set3")[5],
-    "HR+/HER2-": sns.color_palette("Set3")[7],
+    "HR+/HER2-": sns.color_palette("Set2")[3],
 }
 color_palette_Bigraph = {
     "Unclassified": "white",
@@ -526,7 +526,6 @@ color_palette_Bigraph = {
     "S6": sns.color_palette("tab10")[5],
     "S7": sns.color_palette("tab10")[6],
 }
-
 
 Cell_types_displayed_Danenberg = [
     r"CK$^{med}$ER$^{lo}$",
