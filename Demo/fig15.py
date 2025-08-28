@@ -125,6 +125,7 @@ ax.set_ylabel("Survival", fontsize=12)
 ax.legend(fontsize=11)
 plt.show()
 f.savefig("Results/fig15_a.png", dpi=300)
+f.savefig("Results/fig15_a.svg", dpi=300)
 
 subgroup_id = 'S7'
 characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
@@ -176,6 +177,8 @@ ax.set_ylabel("Survival", fontsize=12)
 ax.legend(fontsize=11)
 plt.show()
 f.savefig("Results/fig15_b.png", dpi=300)
+f.savefig("Results/fig15_b.svg", dpi=300)
+
 
 
 
@@ -296,6 +299,7 @@ ax.set_xlabel("Time (Month)", fontsize=12)
 ax.set_ylabel("Survival", fontsize=12)
 ax.legend(fontsize=11)
 f.savefig("Results/fig15_c.png", dpi=300)
+f.savefig("Results/fig15_c.svg", dpi=300)
 
 
 patient_ids_ev = list(SC_ev["patientID"].unique())
@@ -359,6 +363,7 @@ ax.set_ylabel("Survival", fontsize=12)
 ax.legend(fontsize=11)
 plt.show()
 f.savefig("Results/fig15_d.png", dpi=300)
+f.savefig("Results/fig15_d.svg", dpi=300)
 
 subgroup_id = 'S7'
 characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
@@ -410,7 +415,7 @@ ax.set_ylabel("Survival", fontsize=12)
 ax.legend(fontsize=11)
 plt.show()
 f.savefig("Results/fig15_e.png", dpi=300)
-
+f.savefig("Results/fig15_e.svg", dpi=300)
 
 
 clinical_subtypes_ev = np.zeros(len(patient_ids_ev), dtype=object)
@@ -521,3 +526,4 @@ ax.set_xlabel("Time (Month)", fontsize=12)
 ax.set_ylabel("Survival", fontsize=12)
 ax.legend(fontsize=11)
 f.savefig("Results/fig15_f.png", dpi=300)
+f.savefig("Results/fig15_f.svg", dpi=300)

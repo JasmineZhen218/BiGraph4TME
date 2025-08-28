@@ -127,6 +127,7 @@ for xtick, color in zip(ax[0].get_xticklabels(), xtickcolors):
     xtick.set_color(color)
 ax[1].get_xaxis().set_visible(False)
 f.savefig("Results/figA6_b.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA6_b.svg", dpi=300, bbox_inches="tight")
 
 f, ax = plt.subplots(
     1,
@@ -159,3 +160,4 @@ for xtick, color in zip(ax[0].get_xticklabels(), xtickcolors):
     xtick.set_color(color)
 ax[1].get_xaxis().set_visible(False)
 f.savefig("Results/figA6_c.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA6_c.svg", dpi=300, bbox_inches="tight")

@@ -113,9 +113,15 @@ annot.configure(
     )
 annot.apply_test()
 ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
+ax.set_ylabel("Proportion in each patient", fontsize=12)
+ax.set_xlabel("Grade", fontsize=12)
 f.savefig(
     "Results/fig16_a.jpg",
+    dpi=300,
+    bbox_inches="tight",
+)
+f.savefig(
+    "Results/fig16_a.svg",
     dpi=300,
     bbox_inches="tight",
 )
@@ -161,12 +167,19 @@ annot.configure(
     )
 annot.apply_test()
 ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
+ax.set_ylabel("Proportion in each patient", fontsize=12)
+ax.set_xlabel("Grade", fontsize=12)
 f.savefig(
     "Results/fig16_b.jpg",
     dpi=300,
     bbox_inches="tight",
 )
+f.savefig(
+    "Results/fig16_b.svg",
+    dpi=300,
+    bbox_inches="tight",
+)
+
 
 
 feature_name = "grade"
@@ -216,9 +229,15 @@ annot.configure(
     )
 annot.apply_test()
 ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
+ax.set_ylabel("Proportion in each patient", fontsize=12)
+ax.set_xlabel("Grade", fontsize=12)
 f.savefig(
     "Results/fig16_c.jpg",
+    dpi=300,
+    bbox_inches="tight",
+)
+f.savefig(
+    "Results/fig16_c.svg",
     dpi=300,
     bbox_inches="tight",
 )
@@ -264,9 +283,16 @@ annot.configure(
     )
 annot.apply_test()
 ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
+ax.set_ylabel("Proportion in each patient", fontsize=12)
+ax.set_xlabel("Grade", fontsize=12)
 f.savefig(
     "Results/fig16_d.jpg",
     dpi=300,
     bbox_inches="tight",
 )
+f.savefig(
+    "Results/fig16_d.svg",
+    dpi=300,
+    bbox_inches="tight",
+)
+

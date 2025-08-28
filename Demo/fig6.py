@@ -1,4 +1,5 @@
 import sys
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,230 +8,154 @@ import seaborn as sns
 import networkx as nx
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import multivariate_logrank_test
+
+sys.path.extend(["./..", "./../.."])
 from utils import preprocess_Danenberg
-sys.path.append("./..")
 from bi_graph import BiGraph
 from population_graph import Population_Graph
 
+# --- Setup ---
+sys.path.append("./..")
+os.makedirs("Results/Fig6", exist_ok=True)
 
+# --- Data Load ---
 SC_d_raw = pd.read_csv("Datasets/Danenberg_et_al/cells.csv")
 survival_d_raw = pd.read_csv("Datasets/Danenberg_et_al/clinical.csv")
-SC_d, SC_iv, survival_d, survival_iv = preprocess_Danenberg(SC_d_raw, survival_d_raw)
-bigraph_ = BiGraph(k_patient_clustering=30)
-population_graph_discovery, patient_subgroups_discovery = bigraph_.fit_transform(
-    SC_d, survival_data=survival_d
-)
+SC_d, _, survival_d, _ = preprocess_Danenberg(SC_d_raw, survival_d_raw)
 
-patient_ids_discovery = list(SC_d["patientID"].unique())
-subgroup_ids_discovery = np.zeros(len(patient_ids_discovery), dtype=object)
-subgroup_ids_discovery[:] = "Unclassified"
-for i in range(len(patient_subgroups_discovery)):
-    subgroup = patient_subgroups_discovery[i]
-    subgroup_id = subgroup["subgroup_id"]
-    patient_ids = subgroup["patient_ids"]
-    subgroup_ids_discovery[np.isin(patient_ids_discovery, patient_ids)] = subgroup_id
+# --- Model Fit ---
+bigraph = BiGraph(k_patient_clustering=30)
+_, patient_subgroups = bigraph.fit_transform(SC_d, survival_data=survival_d)
 
-color_palette_Bigraph = {
-    "Unclassified": "white",
-    "S1": sns.color_palette("tab10")[0],
-    "S2": sns.color_palette("tab10")[1],
-    "S3": sns.color_palette("tab10")[2],
-    "S4": sns.color_palette("tab10")[3],
-    "S5": sns.color_palette("tab10")[4],
-    "S6": sns.color_palette("tab10")[5],
-    "S7": sns.color_palette("tab10")[6],
-    "S8": sns.color_palette("tab10")[7],
-    "S9": sns.color_palette("tab10")[8],
-    "S10": sns.color_palette("tab10")[9],
-}
+# --- Subgroup Assignment ---
+patient_ids = SC_d["patientID"].unique()
+subgroup_ids = np.full(len(patient_ids), "Unclassified", dtype=object)
+for subgroup in patient_subgroups:
+    idx = np.isin(patient_ids, subgroup["patient_ids"])
+    subgroup_ids[idx] = subgroup["subgroup_id"]
 
-# For visualization purpose, we make nodes distant from each other
-population_graph_for_visualization = Population_Graph(k_clustering=20).generate(
-    bigraph_.Similarity_matrix, patient_ids_discovery
-)  # generate population graph
-pos = nx.spring_layout(
-    population_graph_for_visualization,
-    seed=3,
-    k=1 / (np.sqrt(397)) * 10,
-    iterations=100,
-    dim=3,
-)
-fig = plt.figure(figsize=(5, 5), tight_layout=True)
-ax = fig.add_subplot(111, projection="3d")
-node_xyz = np.array([pos[v] for v in sorted(population_graph_for_visualization)])
-edge_xyz = np.array(
-    [(pos[u], pos[v]) for u, v in population_graph_for_visualization.edges()]
-)
-ax.scatter(
-    *node_xyz.T,
-    s=60,
-    c=[color_palette_Bigraph[i] for i in subgroup_ids_discovery],
-    edgecolors="black",
-    linewidths=1,
-    alpha=1
-)
-edge_list = list(population_graph_for_visualization.edges())
-edge_alpha = [
-    (
-        0.2 * population_graph_for_visualization[u][v]["weight"]
-        if population_graph_for_visualization[u][v]["weight"] > 0.1
-        else 0
+# --- Color Palette ---
+color_palette = {"Unclassified": "white"}
+color_palette.update({f"S{i+1}": sns.color_palette("tab10")[i] for i in range(10)})
+
+# === Function: Plot Population Graph ===
+def plot_population_graph(pop_graph, pos, colors, filename, white_nodes=False):
+    fig = plt.figure(figsize=(5, 5), tight_layout=True)
+    ax = fig.add_subplot(111, projection="3d")
+    node_xyz = np.array([pos[v] for v in sorted(pop_graph)])
+    edge_xyz = np.array([(pos[u], pos[v]) for u, v in pop_graph.edges()])
+    
+    ax.scatter(
+        *node_xyz.T,
+        s=60,
+        c='white' if white_nodes else [colors[i] for i in subgroup_ids],
+        edgecolors="black",
+        linewidths=1,
+        alpha=1,
     )
-    for u, v in edge_list
-]
-for i in range(len(edge_list)):
-    u, v = edge_list[i]
-    ax.plot(*edge_xyz[i].T, alpha=edge_alpha[i], color="k")
+    edge_alpha = [
+        0.2 * pop_graph[u][v]["weight"] if pop_graph[u][v]["weight"] > 0.1 else 0
+        for u, v in pop_graph.edges()
+    ]
+    for i, (u, v) in enumerate(pop_graph.edges()):
+        ax.plot(*edge_xyz[i].T, alpha=edge_alpha[i], color="k")
 
-ax.set(
-    xlim=(np.min(node_xyz[:, 0]), np.max(node_xyz[:, 0])),
-    ylim=(np.min(node_xyz[:, 1]), np.max(node_xyz[:, 1])),
-    zlim=(np.min(node_xyz[:, 2]), np.max(node_xyz[:, 2])),
-)
-handles = []
-if np.sum(subgroup_ids_discovery == "Unclassified") > 0:
-    handles.append(
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="white",
-            markerfacecolor="white",
-            label="Unclassified (N = {})".format(
-                np.sum(subgroup_ids_discovery == "Unclassified")
-            ),
-            markeredgecolor="black",
-            markeredgewidth=1,
-            markersize=8,
+    ax.set(xticklabels=[], yticklabels=[], zticklabels=[])
+    ax.set_xlim(node_xyz[:, 0].min(), node_xyz[:, 0].max())
+    ax.set_ylim(node_xyz[:, 1].min(), node_xyz[:, 1].max())
+    ax.set_zlim(node_xyz[:, 2].min(), node_xyz[:, 2].max())
+    fig.savefig(f"Results/Fig6/{filename}.svg", dpi=600, bbox_inches="tight")
+    plt.close()
+
+# --- Generate Population Graph ---
+pop_graph = Population_Graph(k_clustering=20).generate(bigraph.Similarity_matrix, patient_ids)
+pos = nx.spring_layout(pop_graph, seed=3, k=1/np.sqrt(397)*10, iterations=100, dim=3)
+
+# --- Plot Population Graphs ---
+plot_population_graph(pop_graph, pos, color_palette, "fig6_a", white_nodes=False)
+
+# --- Print Subgroup Stats ---
+for subgroup in patient_subgroups:
+    print(f"Patient subgroup {subgroup['subgroup_id']}: "
+          f"N = {len(subgroup['patient_ids'])}, "
+          f"HR = {subgroup['hr']:.2f} ({subgroup['hr_lower']:.2f}-{subgroup['hr_upper']:.2f}), "
+          f"p = {subgroup['p']:.2e}")
+
+# --- Survival Data Prep ---
+lengths = np.array([survival_d.loc[survival_d["patientID"] == pid, "time"].values[0] for pid in patient_ids])
+statuses = np.array([survival_d.loc[survival_d["patientID"] == pid, "status"].values[0] for pid in patient_ids])
+
+# === Function: Kaplan-Meier Plot ===
+def plot_km(subgroups, filename, highlight=None):
+    f, ax = plt.subplots(figsize=(5, 5))
+    kmf = KaplanMeierFitter()
+
+    for subgroup in subgroups:
+        sid = subgroup["subgroup_id"]
+        idx = (subgroup_ids == sid)
+        label = f"{sid} (N={idx.sum()})"
+        if highlight and sid in highlight:
+            label = f"{sid}: {highlight[sid]} (N={idx.sum()})"
+        kmf.fit(lengths[idx], statuses[idx], label=label)
+        kmf.plot_survival_function(
+            ax=ax,
+            ci_show=False,
+            color=color_palette[sid],
+            show_censors=True,
+            linewidth=2,
+            censor_styles={"ms": 5, "marker": "|"},
         )
-    )
-for subgroup in patient_subgroups_discovery:
-    subgroup_id = subgroup["subgroup_id"]
-    handles.append(
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color="grey",
-            markerfacecolor=color_palette_Bigraph[subgroup_id],
-            label="{} (N = {})".format(
-                subgroup_id, np.sum(subgroup_ids_discovery == subgroup_id)
-            ),
-            markeredgecolor="black",
-            markeredgewidth=1,
-            markersize=8,
-        )
-    )
+    
+    ax.set_xlabel("Time (Month)", fontsize=14)
+    ax.set_ylabel("Cumulative Survival", fontsize=14)
+    ax.set_ylim(-0.05, 1.05)
+    ax.legend(fontsize=13, ncol=2 if not highlight else 1, loc="lower left")
+    sns.despine()
+    f.savefig(f"Results/Fig6/{filename}.svg", dpi=600, bbox_inches="tight")
+    plt.close()
 
-ax.legend(handles=handles, fontsize=10, ncols=2)
-ax.set(yticklabels=[], xticklabels=[], zticklabels=[])
-fig.savefig("Results/fig6_a.png", dpi=300, bbox_inches="tight")
+# --- All Subgroups KM ---
+logrank = multivariate_logrank_test(lengths[subgroup_ids != "Unclassified"],
+                                     subgroup_ids[subgroup_ids != "Unclassified"],
+                                     statuses[subgroup_ids != "Unclassified"])
+p_val = logrank.p_value
+plot_km(patient_subgroups, "fig6_b")
 
-
-for i in range(len(patient_subgroups_discovery)):
-    print(
-        "Patient subgroup {}: N = {}, HR = {:.2f} ({:.2f}-{:.2f}), p = {:.2e}".format(
-            patient_subgroups_discovery[i]["subgroup_id"],
-            len(patient_subgroups_discovery[i]["patient_ids"]),
-            patient_subgroups_discovery[i]["hr"],
-            patient_subgroups_discovery[i]["hr_lower"],
-            patient_subgroups_discovery[i]["hr_upper"],
-            patient_subgroups_discovery[i]["p"],
-        )
-    )
-
-lengths_discovery = [
-    survival_d.loc[survival_d["patientID"] == i, "time"].values[0]
-    for i in patient_ids_discovery
-]
-statuses_discovery = [
-    (survival_d.loc[survival_d["patientID"] == i, "status"].values[0])
-    for i in patient_ids_discovery
-]
-kmf = KaplanMeierFitter()
-f, ax = plt.subplots(figsize=(5, 5))
-for subgroup in patient_subgroups_discovery:
-    subgroup_id = subgroup["subgroup_id"]
-    length_A, event_observed_A = (
-        np.array(lengths_discovery)[subgroup_ids_discovery == subgroup_id],
-        np.array(statuses_discovery)[subgroup_ids_discovery == subgroup_id],
-    )
-    label = "{} (N={})".format(
-        subgroup["subgroup_id"], np.sum(subgroup_ids_discovery == subgroup_id)
-    )
-    kmf.fit(length_A, event_observed_A, label=label)
-    kmf.plot_survival_function(
-        ax=ax,
-        ci_show=False,
-        color=color_palette_Bigraph[subgroup_id],
-        show_censors=True,
-        linewidth=2,
-        censor_styles={"ms": 5, "marker": "|"},
-    )
-log_rank_test = multivariate_logrank_test(
-    np.array(lengths_discovery)[subgroup_ids_discovery != 0],
-    np.array(subgroup_ids_discovery)[subgroup_ids_discovery != 0],
-    np.array(statuses_discovery)[subgroup_ids_discovery != 0],
-)
-p_value = log_rank_test.p_value
-ax.legend(ncol=2, fontsize=13)
-ax.text(
-    x=0.3,
-    y=0.95,
-    s="p-value = {:.5f}".format(p_value),
-    fontsize=14,
-    transform=ax.transAxes,
-)
-ax.set_xlabel("Time (Month)", fontsize=14)
-ax.set_ylabel("Cumulative Survival", fontsize=14)
-ax.set(
-    ylim=(-0.05, 1.05),
-)
-sns.despine()
-f.savefig("Results/fig6_b.png", dpi=300, bbox_inches="tight")
-
-# Plot hazard ratio
-f, ax = plt.subplots(2, 1, height_ratios=[5, 1], figsize=(8, 3), sharex=True)
+# === Plot Hazard Ratios ===
+f, ax = plt.subplots(2, 1, figsize=(8, 3), height_ratios=[5, 1], sharex=True)
 f.subplots_adjust(hspace=0)
-ax[0].hlines(1, -1, len(patient_subgroups_discovery), color="k", linestyle="--")
-N, xticklabels, xtickcolors = [], [], []
-for i in range(len(patient_subgroups_discovery)):
-    subgroup = patient_subgroups_discovery[i]
-    subgroup_id = subgroup["subgroup_id"]
-    hr, hr_lb, hr_ub, p = (
+
+ax[0].hlines(1, -1, len(patient_subgroups), color="k", linestyle="--")
+xticklabels, xtickcolors, N = [], [], []
+
+for i, subgroup in enumerate(patient_subgroups):
+    sid, hr, hr_lb, hr_ub, p = (
+        subgroup["subgroup_id"],
         subgroup["hr"],
         subgroup["hr_lower"],
         subgroup["hr_upper"],
-        subgroup["p"],
+        subgroup["p"]
     )
-    ax[0].plot(
-        [i, i], [hr_lb, hr_ub], color=color_palette_Bigraph[subgroup_id], linewidth=2
-    )
-    ax[0].scatter([i], [hr], color=color_palette_Bigraph[subgroup_id], s=120)
-    ax[0].scatter(
-        [i], [hr_lb], color=color_palette_Bigraph[subgroup_id], s=60, marker="_"
-    )
-    ax[0].scatter(
-        [i], [hr_ub], color=color_palette_Bigraph[subgroup_id], s=60, marker="_"
-    )
-    N.append(np.sum(subgroup_ids_discovery == subgroup_id))
-    xticklabels.append("{}".format(subgroup_id))
-    if p < 0.05:
-        xtickcolors.append("k")
-    else:
-        xtickcolors.append("grey")
-ax[0].set_xticks(range(len(patient_subgroups_discovery)))
+    ax[0].plot([i, i], [hr_lb, hr_ub], color=color_palette[sid], linewidth=2)
+    ax[0].scatter([i], [hr], color=color_palette[sid], s=120)
+    ax[0].scatter([i], [hr_lb], color=color_palette[sid], s=60, marker="_")
+    ax[0].scatter([i], [hr_ub], color=color_palette[sid], s=60, marker="_")
+    
+    xticklabels.append(sid)
+    xtickcolors.append("k" if p < 0.05 else "gray")
+    N.append((subgroup_ids == sid).sum())
+
+ax[0].set_xticks(range(len(patient_subgroups)))
 ax[0].set_xticklabels(xticklabels)
-for xtick, color in zip(ax[1].get_xticklabels(), xtickcolors):
-    xtick.set_color(color)
+for tick, color in zip(ax[1].get_xticklabels(), xtickcolors):
+    tick.set_color(color)
+ax[0].set_yscale("log")
 ax[0].set_xlabel("Patient Subgroups")
 ax[0].set_ylabel("Hazard ratio")
-ax[0].set_yscale("log")
-DF = pd.DataFrame({"N": N, "subgroup_id": xticklabels})
-g = sns.barplot(
-    data=DF, x="subgroup_id", y="N", palette=color_palette_Bigraph, ax=ax[1]
-)
-g.invert_yaxis()
+
+sns.barplot(x="subgroup_id", y="N", data=pd.DataFrame({"subgroup_id": xticklabels, "N": N}),
+            palette=color_palette, ax=ax[1])
+ax[1].invert_yaxis()
 ax[1].set_ylabel("Size")
 ax[1].set_xlabel("")
-f.savefig("Results/fig6_c.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/Fig6/fig6_c.svg", dpi=600, bbox_inches="tight")

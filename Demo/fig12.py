@@ -1,605 +1,116 @@
+import os
 import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from statannotations.Annotator import Annotator
-from utils import  preprocess_Danenberg
+from utils import preprocess_Danenberg
 sys.path.append("./..")
 from bi_graph import BiGraph
 
+# --- Setup ---
+os.makedirs("Results/Fig12", exist_ok=True)
 
+# Load data
 SC_d_raw = pd.read_csv("Datasets/Danenberg_et_al/cells.csv")
 survival_d_raw = pd.read_csv("Datasets/Danenberg_et_al/clinical.csv")
 SC_d, SC_iv, survival_d, survival_iv = preprocess_Danenberg(SC_d_raw, survival_d_raw)
+
+# Run BiGraph
 bigraph_ = BiGraph(k_patient_clustering=30)
-population_graph_discovery, patient_subgroups_discovery = bigraph_.fit_transform(
-    SC_d, survival_data=survival_d
-)
-patient_ids_discovery = list(SC_d["patientID"].unique())
-clinical_subtypes_discovery = np.zeros(len(patient_ids_discovery), dtype=object)
-clinical_subtypes_discovery[:] = "Unknown"
-for i in range(len(patient_ids_discovery)):
-    patient_id = patient_ids_discovery[i]
-    er = survival_d.loc[survival_d["patientID"] == patient_id, "ER Status"].values[0]
-    pr = survival_d.loc[survival_d["patientID"] == patient_id, "PR Status"].values[0]
-    her2 = survival_d.loc[survival_d["patientID"] == patient_id, "HER2 Status"].values[
-        0
-    ]
-    if her2 == "Positive":
-        clinical_subtypes_discovery[i] = "HER2+"  # Her2+
-    if (er == "Positive" or pr == "Positive") and her2 == "Negative":
-        clinical_subtypes_discovery[i] = "HR+/HER2-"  # HR+/HER2-
-    elif (er == "Negative" and pr == "Negative") and her2 == "Negative":
-        clinical_subtypes_discovery[i] = "TNBC"  # TNBC
+population_graph_discovery, patient_subgroups_discovery = bigraph_.fit_transform(SC_d, survival_data=survival_d)
+patient_ids_discovery = np.array(SC_d["patientID"].unique())
 
-Histograms = bigraph_.fitted_soft_wl_subtree.Histograms
-Proportions = Histograms / np.sum(Histograms, axis=1, keepdims=True)
-patient_ids_discovery = np.array(list(SC_d["patientID"].unique()))
+# Assign clinical subtype
+clinical_subtypes_discovery = np.full(len(patient_ids_discovery), "Unknown", dtype=object)
+for i, pid in enumerate(patient_ids_discovery):
+    row = survival_d[survival_d["patientID"] == pid].iloc[0]
+    if row["HER2 Status"] == "Positive":
+        clinical_subtypes_discovery[i] = "HER2+"
+    elif (row["ER Status"] == "Positive" or row["PR Status"] == "Positive") and row["HER2 Status"] == "Negative":
+        clinical_subtypes_discovery[i] = "HR+/HER2-"
+    elif row["ER Status"] == row["PR Status"] == "Negative" and row["HER2 Status"] == "Negative":
+        clinical_subtypes_discovery[i] = "TNBC"
 
+# Compute proportions
+Histograms = np.stack(bigraph_.fitted_soft_wl_subtree.Histograms, axis=0)
+Histograms = np.stack(Histograms, axis=0)
+Proportions = Histograms / Histograms.sum(axis=1, keepdims=True)
 
-feature_name = "Grade"
-feature_list = [1, 2, 3]
-compare_list = [(1, 2), (2, 3), (1, 3)]
+# Boxplot function
+def plot_box(feature_name, feature_list, compare_list, subgroup_id, suffix, subset_mask=None, xlabel=None):
+    idx = int(subgroup_id.split('S')[1]) - 1
+    patterns = patient_subgroups_discovery[idx]["characteristic_patterns"]
+    proportion = Proportions[:, patterns].sum(axis=1)
+    patients = patient_ids_discovery if subset_mask is None else patient_ids_discovery[subset_mask]
+    proportions = proportion if subset_mask is None else proportion[subset_mask]
 
-subgroup_id = 'S1'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: [
-                    survival_d.loc[
-                        survival_d["patientID"] == patient_id, feature_name
-                    ].values[0]
-                    for patient_id in patient_ids_discovery
-                ],
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_a.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
+    values = [survival_d[survival_d["patientID"] == pid][feature_name].values[0] for pid in patients]
+    df = pd.DataFrame({"Proportion": proportions, feature_name: values}).dropna()
 
-subgroup_id = 'S7'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: [
-                    survival_d.loc[
-                        survival_d["patientID"] == patient_id, feature_name
-                    ].values[0]
-                    for patient_id in patient_ids_discovery
-                ],
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_e.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
+    f, ax = plt.subplots(figsize=(3, 3))
+    sns.boxplot(x=feature_name, y="Proportion", data=df, showfliers=False, order=feature_list, color="grey")
+    annot = Annotator(ax, compare_list, data=df, x=feature_name, y="Proportion", order=feature_list)
+    annot.configure(test="Mann-Whitney", text_format="star", loc="inside", verbose=2)
+    annot.apply_test()
+    ax, _ = annot.annotate()
+    ax.set_ylabel("Proportion in each patient", fontsize=12)
+    ax.set_xlabel(xlabel or feature_name, fontsize=12)
+    f.savefig(f"Results/Fig12/fig12_{suffix}.svg", dpi=300, bbox_inches="tight")
 
-subgroup_id = 'S4'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-        {
-            "Proportion": proportion[clinical_subtypes_discovery == "TNBC"],
-            feature_name: [
-                survival_d.loc[
-                    survival_d["patientID"] == patient_id, feature_name
-                ].values[0]
-                for patient_id in np.array(patient_ids_discovery)[clinical_subtypes_discovery == "TNBC"]
-            ],
-        }
-    )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_i.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
+# Run all boxplots
+plot_box("Grade", [1, 2, 3], [(1, 2), (2, 3), (1, 3)], "S1", "a")
+plot_box("Grade", [1, 2, 3], [(1, 2), (2, 3), (1, 3)], "S7", "e")
+plot_box("Grade", [1, 2, 3], [(1, 2), (2, 3), (1, 3)], "S4", "i", clinical_subtypes_discovery == "TNBC")
 
+plot_box("Tumor Stage", [1, 2, 3, 4], [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)], "S1", "b", xlabel="Stage")
+plot_box("Tumor Stage", [1, 2, 3, 4], [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)], "S7", "f", xlabel="Stage")
+plot_box("Tumor Stage", [1, 2, 3], [(1, 2), (1, 3), (2, 3)], "S4", "j", clinical_subtypes_discovery == "TNBC", xlabel="Stage")
 
+# Lymphatic metastasis plots
+def plot_lymphatic(subgroup_id, suffix, mask=None):
+    idx = int(subgroup_id.split('S')[1]) - 1
+    patterns = patient_subgroups_discovery[idx]["characteristic_patterns"]
+    proportion = Proportions[:, patterns].sum(axis=1)
+    patients = patient_ids_discovery if mask is None else patient_ids_discovery[mask]
+    proportions = proportion if mask is None else proportion[mask]
 
-feature_name = "Tumor Stage"
-feature_list = [1, 2, 3, 4]
-compare_list = [
-    (1, 2),
-    (1,3),
-    (1,4),
-    (3, 4),
-    (2, 3),
-    (2,4)
-]
-subgroup_id = 'S1'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: [
-                    survival_d.loc[
-                        survival_d["patientID"] == patient_id, feature_name
-                    ].values[0]
-                    for patient_id in patient_ids_discovery
-                ],
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_b.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
+    values = ["Yes" if survival_d[survival_d["patientID"] == pid]["Lymph nodes examined positive"].values[0] > 0 else "No" for pid in patients]
+    df = pd.DataFrame({"Proportion": proportions, "Lymphatic metastasis": values}).dropna()
 
-subgroup_id = 'S7'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: [
-                    survival_d.loc[
-                        survival_d["patientID"] == patient_id, feature_name
-                    ].values[0]
-                    for patient_id in patient_ids_discovery
-                ],
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_f.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
+    f, ax = plt.subplots(figsize=(3, 3))
+    sns.boxplot(x="Lymphatic metastasis", y="Proportion", data=df, showfliers=False, order=["Yes", "No"], color="grey")
+    annot = Annotator(ax, [("Yes", "No")], data=df, x="Lymphatic metastasis", y="Proportion", order=["Yes", "No"])
+    annot.configure(test="Mann-Whitney", text_format="star", loc="inside", verbose=2)
+    annot.apply_test()
+    ax, _ = annot.annotate()
+    ax.set_ylabel("Proportion in each patient", fontsize=12)
+    ax.set_xlabel("Lymphatic metastasis", fontsize=12)
+    f.savefig(f"Results/Fig12/fig12_{suffix}.svg", dpi=300, bbox_inches="tight")
 
-subgroup_id = 'S4'
-feature_list = [1, 2, 3]
-compare_list = [
-    (1, 2),
-    (1,3),
-    (2, 3),
-]
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-        {
-            "Proportion": proportion[clinical_subtypes_discovery == "TNBC"],
-            feature_name: [
-                survival_d.loc[
-                    survival_d["patientID"] == patient_id, feature_name
-                ].values[0]
-                for patient_id in np.array(patient_ids_discovery)[clinical_subtypes_discovery == "TNBC"]
-            ],
-        }
-    )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_j.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
+plot_lymphatic("S1", "c")
+plot_lymphatic("S7", "g")
+plot_lymphatic("S4", "k", clinical_subtypes_discovery == "TNBC")
 
+# Clinical subtype plots
+def plot_clinical_subtype(subgroup_id, suffix):
+    idx = int(subgroup_id.split('S')[1]) - 1
+    patterns = patient_subgroups_discovery[idx]["characteristic_patterns"]
+    proportion = Proportions[:, patterns].sum(axis=1)
+    df = pd.DataFrame({"Proportion": proportion, "Clinical Subtype": clinical_subtypes_discovery}).dropna()
 
-feature_name = "Lymph nodes examined positive"
-feature_list = ["Yes", "No"]
-compare_list = [("Yes", "No")]
-subgroup_id = 'S1'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: [
-                    (
-                        "Yes"
-                        if survival_d.loc[
-                            survival_d["patientID"] == patient_id, feature_name
-                        ].values[0]
-                        > 0
-                        else "No"
-                    )
-                    for patient_id in patient_ids_discovery
-                ],
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_c.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
+    f, ax = plt.subplots(figsize=(3, 3))
+    order = ["HER2+", "HR+/HER2-", "TNBC"]
+    compare = [("HER2+", "HR+/HER2-"), ("HER2+", "TNBC"), ("HR+/HER2-", "TNBC")]
+    sns.boxplot(x="Clinical Subtype", y="Proportion", data=df, showfliers=False, order=order, color="grey")
+    annot = Annotator(ax, compare, data=df, x="Clinical Subtype", y="Proportion", order=order)
+    annot.configure(test="Mann-Whitney", text_format="star", loc="inside", verbose=2)
+    annot.apply_test()
+    ax, _ = annot.annotate()
+    ax.set_ylabel("Proportion in each patient", fontsize=12)
+    ax.set_xlabel("Clinical Subtype", fontsize=12)
+    f.savefig(f"Results/Fig12/fig12_{suffix}.svg", dpi=300, bbox_inches="tight")
 
-subgroup_id = 'S7'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: [
-                    (
-                        "Yes"
-                        if survival_d.loc[
-                            survival_d["patientID"] == patient_id, feature_name
-                        ].values[0]
-                        > 0
-                        else "No"
-                    )
-                    for patient_id in patient_ids_discovery
-                ],
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_g.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
-
-subgroup_id = 'S4'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion[clinical_subtypes_discovery == "TNBC"],
-                feature_name: [
-                    (
-                        "Yes"
-                        if survival_d.loc[
-                            survival_d["patientID"] == patient_id, feature_name
-                        ].values[0]
-                        > 0
-                        else "No"
-                    )
-                    for patient_id in np.array(patient_ids_discovery)[
-                        clinical_subtypes_discovery == "TNBC"
-                    ]
-                ],
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_k.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
-
-feature_name = "Clinical Subtype"
-feature_list = [
-    "HER2+",
-    "HR+/HER2-",
-    "TNBC",
-   
-]
-compare_list = [
-    ("HER2+", "HR+/HER2-"),
-    ("HER2+", "TNBC"),
-    ("HR+/HER2-", "TNBC"),
-
-]
-subgroup_id = 'S1'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: clinical_subtypes_discovery
-
-                
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_d.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
-
-subgroup_id = 'S7'
-characteristic_patterns = patient_subgroups_discovery[int(subgroup_id.split('S')[1])-1]["characteristic_patterns"]
-proportion = np.sum(Proportions[:, np.array(characteristic_patterns)], axis=1)
-DF_presentation = pd.DataFrame(
-            {
-                "Proportion": proportion,
-                feature_name: clinical_subtypes_discovery        
-            }
-        )
-DF_presentation = DF_presentation.dropna()
-f, ax = plt.subplots(figsize=(3, 3))
-sns.boxplot(
-        x=feature_name,
-        y="Proportion",
-        data=DF_presentation,
-        showfliers=False,
-        order=feature_list,
-        color = 'grey',
-    )
-annot = Annotator(
-        ax,
-        compare_list,
-        data=DF_presentation,
-        x=feature_name,
-        y="Proportion",
-        order=feature_list,
-    )
-annot.configure(
-        test="Mann-Whitney",
-        text_format="star",
-        loc="inside",
-        verbose=2,
-    )
-annot.apply_test()
-ax, test_results = annot.annotate()
-ax.set(ylabel="Proportion in each patient")
-f.savefig(
-    "Results/fig12_h.jpg",
-    dpi=300,
-    bbox_inches="tight",
-)
-
+plot_clinical_subtype("S1", "d")
+plot_clinical_subtype("S7", "h")

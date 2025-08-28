@@ -207,7 +207,11 @@ f.savefig(
     dpi=300,
     bbox_inches="tight",
 )
-
+f.savefig(
+    "Results/fig14_a.svg",
+    dpi=300,
+    bbox_inches="tight",
+)
 
 clinical_subtype = "TNBC"
 subgroup_id = "S2'"
@@ -305,6 +309,12 @@ f.savefig(
     dpi=300,
     bbox_inches="tight",
 )
+f.savefig(
+    "Results/fig14_b.svg",
+    dpi=300,
+    bbox_inches="tight",
+)
+
 
 
 clinical_subtype = "HR+/HER2-"
@@ -400,6 +410,11 @@ ax.set_title(
 plt.show()
 f.savefig(
     "Results/fig14_c.jpg",
+    dpi=300,
+    bbox_inches="tight",
+)
+f.savefig(
+    "Results/fig14_c.svg",
     dpi=300,
     bbox_inches="tight",
 )
@@ -542,6 +557,12 @@ f.savefig(
     dpi=300,
     bbox_inches="tight",
 )
+f.savefig(
+    "Results/fig14_d.svg",
+    dpi=300,
+    bbox_inches="tight",
+)
+
 
 clinical_subtype = "TNBC"
 subgroup_id = "S2'"
@@ -639,6 +660,12 @@ f.savefig(
     dpi=300,
     bbox_inches="tight",
 )
+f.savefig(
+    "Results/fig14_e.svg",
+    dpi=300,
+    bbox_inches="tight",
+)
+
 
 clinical_subtype = "HR+/HER2-"
 subgroup_id = "S7'"
@@ -733,6 +760,11 @@ ax.set_title(
 plt.show()
 f.savefig(
     "Results/fig14_f.jpg",
+    dpi=300,
+    bbox_inches="tight",
+)
+f.savefig(
+    "Results/fig14_f.svg",
     dpi=300,
     bbox_inches="tight",
 )

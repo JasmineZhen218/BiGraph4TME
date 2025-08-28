@@ -148,3 +148,4 @@ for xtick, color in zip(ax.get_xticklabels(), xtickcolors):
 
 plt.show()
 f.savefig("Results/figA5_b.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA5_b.svg", dpi=300, bbox_inches="tight")

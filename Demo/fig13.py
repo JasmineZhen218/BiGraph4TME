@@ -152,9 +152,10 @@ for subgroup in patient_subgroups_iv:
         )
     )
 
-ax.legend(handles=handles, fontsize=11, ncols=2)
+# ax.legend(handles=handles, fontsize=12, ncols=2)
 ax.set(yticklabels=[], xticklabels=[], zticklabels=[])
-plt.savefig("Results/fig13_a.jpg", dpi=300, bbox_inches="tight")
+plt.savefig("Results/fig13_a.png", dpi=600, bbox_inches="tight")
+plt.savefig("Results/fig13_a.svg", dpi=300, bbox_inches="tight")
 
 
 for i in range(len(patient_subgroups_iv)):
@@ -203,21 +204,22 @@ log_rank_test = multivariate_logrank_test(
     np.array(statuses_iv)[subgroup_ids_iv != 0],
 )
 p_value = log_rank_test.p_value
-ax.legend(ncol=2, fontsize=13)
+ax.legend(ncol=2, fontsize=14)
 ax.text(
     x=0.3,
     y=0.95,
     s="p-value = {:.5f}".format(p_value),
-    fontsize=14,
+    fontsize=16,
     transform=ax.transAxes,
 )
-ax.set_xlabel("Time (Month)", fontsize=14)
-ax.set_ylabel("Cumulative Survival", fontsize=14)
+ax.set_xlabel("Time (Month)", fontsize=16)
+ax.set_ylabel("Cumulative Survival", fontsize=16)
 ax.set(
     ylim=(-0.05, 1.1),
 )
 sns.despine()
 plt.savefig("Results/fig13_b.jpg", dpi=300, bbox_inches="tight")
+plt.savefig("Results/fig13_b.svg", dpi=300, bbox_inches="tight")
 
 
 # Plot hazard ratio
@@ -273,6 +275,7 @@ ax[1].set_ylabel("Size")
 ax[1].set_xlabel("")
 plt.show()
 f.savefig("Results/fig13_c.jpg", dpi=300, bbox_inches="tight")
+f.savefig("Results/fig13_c.SVG", dpi=300, bbox_inches="tight")
 
 patient_ids_ev = list(SC_ev["patientID"].unique())
 subgroup_ids_ev = np.zeros(len(patient_ids_ev), dtype=object)
@@ -355,9 +358,10 @@ for subgroup in patient_subgroups_ev:
         )
     )
 
-ax.legend(handles=handles, fontsize=11, ncols=2, loc="lower left")
+# ax.legend(handles=handles, fontsize=12, ncols=2, loc="lower left")
 ax.set(yticklabels=[], xticklabels=[], zticklabels=[])
-plt.savefig("Results/fig13_d.jpg", dpi=300, bbox_inches="tight")
+plt.savefig("Results/fig13_d.png", dpi=600, bbox_inches="tight")
+plt.savefig("Results/fig13_d.svg", dpi=300, bbox_inches="tight")
 
 
 for i in range(len(patient_subgroups_ev)):
@@ -406,21 +410,22 @@ log_rank_test = multivariate_logrank_test(
     np.array(statuses_ev)[subgroup_ids_ev != 0],
 )
 p_value = log_rank_test.p_value
-ax.legend(ncol=2, fontsize=12, loc="lower left")
+ax.legend(ncol=2, fontsize=14, loc="lower left")
 ax.text(
     x=0.3,
     y=0.95,
     s="p-value = {:.5f}".format(p_value),
-    fontsize=14,
+    fontsize=16,
     transform=ax.transAxes,
 )
-ax.set_xlabel("Time (Month)", fontsize=14)
-ax.set_ylabel("Cumulative Survival", fontsize=14)
+ax.set_xlabel("Time (Month)", fontsize=16)
+ax.set_ylabel("Cumulative Survival", fontsize=16)
 ax.set(
     ylim=(-0.15, 1.15),
 )
 sns.despine()
 plt.savefig("Results/fig13_e.jpg", dpi=300, bbox_inches="tight")
+plt.savefig("Results/fig13_e.svg", dpi=300, bbox_inches="tight")
 
 
 # Plot hazard ratio
@@ -476,5 +481,6 @@ ax[1].set_ylabel("Size")
 ax[1].set_xlabel("")
 plt.show()
 f.savefig("Results/fig13_f.jpg", dpi=300, bbox_inches="tight")
+f.savefig("Results/fig13_f.svg", dpi=300, bbox_inches="tight")
 
 

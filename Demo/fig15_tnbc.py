@@ -103,7 +103,7 @@ res = stats.mannwhitneyu(
 print(res)
 
 # show boxplot of proportion of RD and pCR
-f, ax = plt.subplots(1, 1, figsize=(4, 3))
+f, ax = plt.subplots(1, 1, figsize=(6,3))
 sns.boxplot(data = df, x='pCR', y='Proportion',ax=ax, showfliers=False, palette = {
     'RD': sns.color_palette("Set2")[1],
     'pCR': sns.color_palette("Set2")[0]
@@ -126,13 +126,13 @@ annot.apply_test()
 formatted_pvalues = f'p = {res.pvalue:.5f}'
 annot.set_custom_annotations([formatted_pvalues])
 ax, test_results = annot.annotate()
-ax.set(
-    xlabel="Response",
-    ylabel="Proportion of TLS niche",
-    xticklabels=["RD", "pCR"],
-    title = "Pre-Treatment",
-)
+# set font size
+ax.set_xlabel("Response", fontsize=16)
+ax.set_ylabel("Proportion", fontsize=16)
+ax.set_xticklabels(["RD", "pCR"])
+ax.set_title("Pre-Treatment", fontsize=16)
 f.savefig("Results/fig15_g.jpg", bbox_inches='tight')
+f.savefig("Results/fig15_g.svg", bbox_inches='tight')
 
 
 patient_ids_ev_tnbc_ot = list(SC_ev_tnbc_ot["patientID"].unique())
@@ -158,7 +158,7 @@ res = stats.mannwhitneyu(
 print(res)
 
 # show boxplot of proportion of RD and pCR
-f, ax = plt.subplots(1, 1, figsize=(4, 3))
+f, ax = plt.subplots(1, 1, figsize=(6,3))
 sns.boxplot(data = df, x='pCR', y='Proportion',ax=ax, showfliers=False, palette = {
     'RD': sns.color_palette("Set2")[1],
     'pCR': sns.color_palette("Set2")[0]
@@ -183,18 +183,13 @@ annot.configure(
 annot.apply_test()
 formatted_pvalues = f'p = {res.pvalue:.5f}'
 annot.set_custom_annotations([formatted_pvalues])
-
 ax, test_results = annot.annotate()
-
-ax.set(
-    xlabel="Response",
-    ylabel="Proportion of TLS-like niche",
-    xticklabels=["RD", "pCR"],
-    title = "On-Treatment",
-)
-
-plt.show()
+ax.set_title("On-Treatment", fontsize=16)
+ax.set_xlabel("Response", fontsize=16)
+ax.set_ylabel("Proportion", fontsize=16)
+ax.set_xticklabels(["RD", "pCR"])
 f.savefig("Results/fig15_h.jpg", bbox_inches='tight')
+f.savefig("Results/fig15_h.svg", bbox_inches='tight')
 
 
 
@@ -235,7 +230,7 @@ print(res)
 pvalues.append(res.pvalue)
 
 # show boxplot of proportion of RD and pCR
-f, ax = plt.subplots(1, 1, figsize=(4, 3))
+f, ax = plt.subplots(1, 1, figsize=(6,3))
 sns.boxplot(
     data=df,
     x="Arm",
@@ -272,13 +267,12 @@ ax.legend(
     handles=handles,
     labels=["RD", "pCR"],
 )
-ax.set(
-    xlabel="Therapy",
-    ylabel="Proportion of TLS-like niche",
-    xticklabels=["C", "C&I"],
-    title="Pre-Treatment",
-)
+ax.set_title("Pre-Treatment", fontsize=16)
+ax.set_xlabel("Therapy", fontsize=16)
+ax.set_ylabel("Proportion", fontsize=16)
+ax.set_xticklabels(["C", "C&I"])
 f.savefig("Results/fig15_i.jpg", bbox_inches='tight')
+f.savefig("Results/fig15_i.svg", bbox_inches='tight')
 
 
 patient_ids_ev_tnbc_ot = list(SC_ev_tnbc_ot["patientID"].unique())
@@ -321,7 +315,7 @@ print(res)
 pvalues.append(res.pvalue)
 
 # show boxplot of proportion of RD and pCR
-f, ax = plt.subplots(1, 1, figsize=(4, 3))
+f, ax = plt.subplots(1, 1, figsize=(6,3))
 sns.boxplot(data=df, x="Arm", hue="pCR", y="Proportion", ax=ax, order=["C", "C&I"], showfliers=False, 
             palette = {
                 'RD': sns.color_palette("Set2")[1],
@@ -358,10 +352,9 @@ ax.legend(
     loc="upper left",
 #     bbox_to_anchor=(1, 1),
 )
-ax.set(
-    xlabel="Therapy",
-    ylabel="Proportion of TLS-like niche",
-    xticklabels=["C", "C&I"],
-    title="On-Treatment",
-)
+ax.set_title("On-Treatment", fontsize=16)
+ax.set_xlabel("Therapy", fontsize=16)
+ax.set_ylabel("Proportion", fontsize=16)
+ax.set_xticklabels(["C", "C&I"])
 f.savefig("Results/fig15_j.jpg", bbox_inches='tight')
+f.savefig("Results/fig15_j.svg", bbox_inches='tight')

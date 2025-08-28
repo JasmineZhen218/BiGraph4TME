@@ -166,3 +166,4 @@ for i in range(66):
     ax[i//6, i%6].get_xaxis().set_visible(False)
 plt.show()
 f.savefig("Results/figA7.png", dpi=300, bbox_inches='tight')
+f.savefig("Results/figA7.svg", dpi=300, bbox_inches='tight')

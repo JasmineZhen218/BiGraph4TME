@@ -65,6 +65,7 @@ ax.set_title(
     fontweight="bold",
 )
 f.savefig("Results/figA1_a.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA1_a.svg", dpi=600, bbox_inches="tight")
 
 
 SC_ev_raw["cell_type"] = pd.Categorical(
@@ -103,3 +104,4 @@ for ytick, color in zip(ax.get_yticklabels(), ytickcolors):
     ytick.set_color(color)
 f.show()
 f.savefig("Results/figA1_b.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA1_b.svg", dpi=300, bbox_inches="tight")

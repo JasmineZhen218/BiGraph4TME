@@ -104,5 +104,6 @@ xtickcolors = ["cornflowerblue"] * 16 + ["darkorange"] * 11 + ["forestgreen"] * 
 for xtick, color in zip(ax.get_xticklabels(), xtickcolors):
     xtick.set_color(color)
 f.savefig("Results/figA5_a.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA5_a.svg", dpi=300, bbox_inches="tight")
 
 

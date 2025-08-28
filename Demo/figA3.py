@@ -110,3 +110,4 @@ f.text(
 )
 plt.show()
 f.savefig("Results/figA3.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA3.svg", dpi=300, bbox_inches="tight")

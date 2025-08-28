@@ -50,3 +50,4 @@ for ytick, color in zip(ax.get_yticklabels(), ytickcolors):
     ytick.set_color(color)
 f.show()
 f.savefig("Results/figA1_c.png", dpi=300, bbox_inches="tight")
+f.savefig("Results/figA1_c.svg", dpi=300, bbox_inches="tight")
