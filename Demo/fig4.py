@@ -18,7 +18,8 @@ survival_d_raw = pd.read_csv("Datasets/Danenberg_et_al/clinical.csv")
 SC_d, SC_iv, survival_d, survival_iv = preprocess_Danenberg(SC_d_raw, survival_d_raw)
 
 # --- Run BiGraph ---
-bigraph = BiGraph(k_patient_clustering=30)
+bigraph = BiGraph(k_patient_clustering = 30, 
+                  soft_wl_save_path = '/cis/home/zwang/Github/BiGraph4TME/Demo/Fitted_swl/Danenberg/fitted_soft_wl_subtree_sample.pkl.pkl', sample_frac=0.1)
 population_graph, patient_subgroups = bigraph.fit_transform(SC_d, survival_data=survival_d)
 
 # --- Signature Postprocessing ---

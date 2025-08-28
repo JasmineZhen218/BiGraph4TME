@@ -263,8 +263,8 @@ class Soft_WL_Subtree(object):
             all pairs of graphs between target an features
         """
         X_prime, Signatures = self.discover_patterns(X, sample_frac=sample_frac)  # discover the TME patterns
-        # self.X = X  # store the input graphs
-        # self.X_prime = X_prime  # store the graphs with pattern ids
+        self.X = X  # store the input graphs
+        self.X_prime = X_prime  # store the graphs with pattern ids
         self.Signatures = Signatures  # store the signatures
         self.num_patterns = len(Signatures)  # store the number of patterns
         Histograms = self.compute_histograms(X_prime)  # compute the histograms

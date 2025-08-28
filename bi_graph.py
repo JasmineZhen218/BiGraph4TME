@@ -13,7 +13,7 @@ class BiGraph(object):
     def __init__(
         self,
         a=0.01,
-        n_iter=0,
+        n_iter=2,
         k_subtree_clustering=100,
         k_patient_clustering=30,
         k_estimate = 3,
@@ -22,7 +22,7 @@ class BiGraph(object):
         threshold_hodges_lehmann=0.5,
         seed=1,
         soft_wl_save_path = 'fitted_soft_wl_subtree',
-        sample_frac=0.8
+        sample_frac=1.0
     ):
         self.a = a  # parameter for edge weight calculation in cell graph  $w_{ij} = \exp(-a \cdot d_{ij}^2)$
         self.n_iter = n_iter  # number of iterations
