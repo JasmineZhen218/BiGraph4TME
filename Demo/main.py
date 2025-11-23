@@ -24,7 +24,7 @@ survival_d_raw = pd.read_csv("Datasets/Danenberg_et_al/clinical.csv")
 SC_d, _, survival_d, _ = preprocess_Danenberg(SC_d_raw, survival_d_raw)
 
 # --- Model Fit ---
-bigraph = BiGraph(k_patient_clustering=30, sample_frac=1.0, soft_wl_save_path="Fitted_swl/Danenberg/fitted_soft_wl_subtree_sample_1.0.pkl")
+bigraph = BiGraph(k_patient_clustering=30, sample_frac=0.1, soft_wl_save_path="Fitted_swl/Danenberg/fitted_soft_wl_subtree_sample_0.1.pkl")
 _, patient_subgroups = bigraph.fit_transform(SC_d, survival_data=survival_d)
 
 # --- Subgroup Assignment ---
